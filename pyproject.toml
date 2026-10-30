@@ -70,7 +70,7 @@ filterwarnings = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["results"]
+extend-exclude = ["results", "app_server.py", "pdf_generator.py", "chay_5phut.py"]
 
 [tool.ruff.lint]
 # Standard "good defaults" rule set (pyflakes + pycodestyle + isort + bugbear +

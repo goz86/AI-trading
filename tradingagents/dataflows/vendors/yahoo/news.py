@@ -1,14 +1,14 @@
 """yfinance-based news data fetching functions."""
 
 import contextlib
-from datetime import UTC, datetime
-
-import yfinance as yf
-from dateutil.relativedelta import relativedelta
 import email.utils
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from datetime import UTC, datetime
+
+import yfinance as yf
+from dateutil.relativedelta import relativedelta
 
 from tradingagents.dataflows.config import get_config
 from tradingagents.dataflows.date_window import coverage_gap, in_window
@@ -183,8 +183,7 @@ def get_news_yfinance(
         live_arts = _fetch_live_rss_news(q, limit=article_limit)
         seen = {a["title"].lower().strip() for a in in_range}
         for a in live_arts:
-            if a["title"].lower().strip() not in seen:
-                if in_window(a["pub_date"], start_dt, end_dt):
+            if a["title"].lower().strip() not in seen and in_window(a["pub_date"], start_dt, end_dt):
                     seen.add(a["title"].lower().strip())
                     in_range.append(a)
 
@@ -261,8 +260,7 @@ def get_global_news_yfinance(
         extra_rss = _fetch_live_rss_news("Federal Reserve interest rates inflation economic outlook", limit=5)
         extra_rss += _fetch_live_rss_news("Bitcoin cryptocurrency global markets financial news", limit=5)
         for a in extra_rss:
-            if a["title"] and a["title"] not in seen_titles:
-                if in_window(a["pub_date"], start_dt, curr_dt):
+            if a["title"] and a["title"] not in seen_titles and in_window(a["pub_date"], start_dt, curr_dt):
                     seen_titles.add(a["title"])
                     in_window_news.append(a)
             if len(in_window_news) >= limit:
