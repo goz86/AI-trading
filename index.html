@@ -1296,6 +1296,7 @@
 
   // 3D Engine Variables
   let scene, camera, renderer, controls;
+  let sunLight, hemiLight, fillLight, boardSpot;
   let autoRotate = true;
   let showLabels = true;
   let showBubbles = true;
@@ -1703,11 +1704,11 @@
     controls.target.set(0, 1.2, 0.5);
 
     // 5. Studio Lighting Rig
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xb8d4cb, 0.8);
+    hemiLight = new THREE.HemisphereLight(0xffffff, 0xb8d4cb, 0.8);
     scene.add(hemiLight);
 
     // Sun / Key light
-    const sunLight = new THREE.DirectionalLight(0xfffaec, 1.15);
+    sunLight = new THREE.DirectionalLight(0xfffaec, 1.15);
     sunLight.position.set(24, 40, 20);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
@@ -1723,12 +1724,12 @@
     scene.add(sunLight);
 
     // Soft cool fill light
-    const fillLight = new THREE.DirectionalLight(0x9fc2b8, 0.45);
+    fillLight = new THREE.DirectionalLight(0x9fc2b8, 0.45);
     fillLight.position.set(-20, 22, -18);
     scene.add(fillLight);
 
     // Accent interior spot for boardroom
-    const boardSpot = new THREE.PointLight(0xfff1dc, 0.8, 16);
+    boardSpot = new THREE.PointLight(0xfff1dc, 0.8, 16);
     boardSpot.position.set(0, 4.5, -0.2);
     scene.add(boardSpot);
 
@@ -2488,8 +2489,6 @@
   function createWaterBar(x, z) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
-    group.userData = { deptId: deptId };
-
     const cabinet = new THREE.Mesh(
       new THREE.BoxGeometry(0.8, 1.0, 0.6),
       new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4 })
