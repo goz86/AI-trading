@@ -1,0 +1,2917 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Trading Studio · 3D Virtual Trading Office</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Three.js + OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- TradingView Lightweight Charts (Local Offline) -->
+  <script src="lightweight-charts.js"></script>
+  <!-- TradingView Live Real-Time Widget -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+  <style>
+    /* ================= TASTE-SKILL DESIGN SYSTEM (ANTI-SLOP & REFINED OFFICE AESTHETIC) ================= */
+    :root {
+      --bg-studio: #c8e0d8; /* Soft mint ambient studio background matching reference */
+      --bg-studio-grad: radial-gradient(circle at 50% 30%, #e2f2ec 0%, #c1dcd3 100%);
+      --diorama-frame: #fbf9f5;
+      --diorama-shadow: rgba(45, 62, 55, 0.18);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --card-hover: rgba(0, 0, 0, 0.12);
+      --brand-red: #822727; /* Muted reference burgundy for active pills */
+      --brand-red-hover: #983232;
+      --apple-blue: #0071e3;
+      --green: #2a9d55;
+      --red: #e63946;
+      --yellow: #f4a261;
+      --text-main: #1f2421;
+      --text-secondary: #5c6761;
+      --text-muted: #8b9790;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 999px;
+      --font-system: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", SFMono-Regular, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+    body {
+      background: var(--bg-studio-grad);
+      color: var(--text-main);
+      font-family: var(--font-system);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 16px 20px 60px;
+    }
+
+    /* Top Navigation Bar */
+    header.studio-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-pill);
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(40, 60, 50, 0.08);
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-avatar {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: linear-gradient(135deg, #1f2421, #40534c);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 13px;
+    }
+    .brand-title { font-size: 14px; font-weight: 700; color: #1f2421; letter-spacing: -0.2px; }
+    .brand-tag {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+      background: rgba(0, 0, 0, 0.06); color: var(--text-secondary); text-transform: uppercase;
+    }
+
+    /* Top Segmented Controls */
+    .segmented-control {
+      display: flex; background: rgba(0, 0, 0, 0.05); padding: 4px;
+      border-radius: var(--radius-pill); gap: 3px;
+    }
+    .segmented-item {
+      padding: 6px 15px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; border: none; background: transparent;
+      transition: all 0.2s ease;
+    }
+    .segmented-item:hover { color: var(--text-main); }
+    .segmented-item.active {
+      background: #fff; color: var(--text-main); font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .status-pill {
+      display: flex; align-items: center; gap: 7px; padding: 5px 12px;
+      border-radius: var(--radius-pill); font-size: 12px; font-weight: 600;
+      background: #fff; border: 1px solid rgba(0, 0, 0, 0.06); color: var(--text-secondary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 6px rgba(42, 157, 85, 0.6);
+    }
+    .status-dot.busy { background: var(--yellow); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Tab Panes */
+    .tab-pane { display: none; animation: fadeIn 0.25s ease; }
+    .tab-pane.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ================= 3D VIRTUAL OFFICE DIORAMA CONTAINER ================= */
+    .diorama-frame-card {
+      position: relative;
+      width: 100%;
+      height: 680px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: #cfe4dc;
+      box-shadow: 0 16px 40px var(--diorama-shadow), 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 4px solid rgba(255, 255, 255, 0.65);
+    }
+
+    /* Top HUD Action Bar (Exact match with reference image) */
+    .diorama-top-hud {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .hud-btn-group { display: flex; gap: 6px; pointer-events: auto; }
+
+    .hud-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #2b332f;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      transition: all 0.15s ease;
+    }
+    .hud-btn:hover { background: #f5f5f3; transform: translateY(-1px); }
+
+    .hud-btn.primary-pill {
+      background: var(--brand-red);
+      color: #ffffff;
+      border-color: var(--brand-red);
+      box-shadow: 0 3px 10px rgba(130, 39, 39, 0.3);
+    }
+    .hud-btn.primary-pill:hover { background: var(--brand-red-hover); }
+
+    .hud-agent-counter {
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #2b332f;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      pointer-events: auto;
+    }
+
+    /* Floating Speech Bubbles (Clean, intentional styling without AI cliches) */
+    .speech-bubble {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      background: #ffffff;
+      color: #1f2421;
+      padding: 7px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      z-index: 30;
+      transition: opacity 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .speech-bubble::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0;
+      border-style: solid;
+      border-color: #ffffff transparent;
+      display: block;
+      width: 0;
+    }
+    .speech-bubble .bubble-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffffff;
+      background: #3e5048;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .speech-bubble.highlight {
+      border: 1.5px solid var(--apple-blue);
+      box-shadow: 0 8px 24px rgba(0, 113, 227, 0.2);
+    }
+    .speech-bubble.highlight .bubble-tag { background: var(--apple-blue); }
+
+    /* Bottom Agent Dock (Matching Reference Image) */
+    .diorama-bottom-dock {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      padding: 5px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    .dock-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 600;
+      color: #3b4440;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .dock-btn:hover { background: rgba(0, 0, 0, 0.06); color: #111; }
+    .dock-btn.active { background: #1f2421; color: #fff; }
+
+    /* Smart Auto-Form / Command Bar */
+    .smart-command-bar {
+      margin-top: 14px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      box-shadow: 0 8px 24px rgba(40, 60, 50, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .command-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .command-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1f2421;
+    }
+    .command-presets {
+      display: flex;
+      gap: 6px;
+    }
+    .preset-chip {
+      padding: 4px 12px;
+      background: #f4f6f5;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 600;
+      color: #43514a;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preset-chip:hover {
+      background: #e9eeeb;
+      color: #111;
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    .command-input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .command-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: #fbfbfb;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      color: #1f2421;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .command-input:focus {
+      border-color: var(--apple-blue);
+      background: #fff;
+    }
+
+    /* Standard Cards & Tabs (Refined clean taste) */
+    .studio-card {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+    }
+    .card-title { font-size: 18px; font-weight: 700; color: #1f2421; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #43514a; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .std-input, .std-select {
+      width: 100%; padding: 11px 14px; background: #fafafa;
+      border: 1px solid rgba(0, 0, 0, 0.1); border-radius: var(--radius-md);
+      color: #1f2421; font-size: 14px; outline: none; font-family: inherit;
+    }
+    .std-input:focus, .std-select:focus { border-color: var(--apple-blue); background: #fff; }
+
+    /* Department checkboxes */
+    .dept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    .dept-card {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      background: #fbfbfb; border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: var(--radius-md); cursor: pointer; transition: all 0.15s;
+    }
+    .dept-card:hover { border-color: rgba(0, 0, 0, 0.18); }
+    .dept-card.checked { background: #f2f7f4; border-color: #2a9d55; }
+
+    .btn-main {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 22px; font-size: 14px; font-weight: 600; border-radius: var(--radius-pill);
+      cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .btn-primary { background: #1f2421; color: #ffffff; }
+    .btn-primary:hover { background: #323b36; transform: translateY(-1px); }
+    .btn-sub { background: #f0f2f1; color: #2b332f; border: 1px solid rgba(0, 0, 0, 0.06); }
+    .btn-sub:hover { background: #e4e7e5; }
+
+    /* Verdict & Reports */
+    .verdict-box {
+      text-align: center; padding: 32px 20px; background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08); border-radius: var(--radius-lg); margin-bottom: 20px;
+    }
+    .verdict-tag { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .verdict-pill {
+      display: inline-block; font-size: 32px; font-weight: 800;
+      padding: 6px 28px; border-radius: var(--radius-pill); margin: 8px 0;
+    }
+    .verdict-buy { background: #eaf8ef; color: #2a9d55; border: 1px solid #b7e4c7; }
+    .verdict-sell { background: #fdeced; color: #d90429; border: 1px solid #f8b4b9; }
+    .verdict-hold { background: #fef7ec; color: #e76f51; border: 1px solid #fcd5b5; }
+
+    .metric-card { background: #fbfbfb; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: var(--radius-md); padding: 14px; }
+    .metric-name { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .metric-val { font-size: 17px; font-weight: 700; color: #1f2421; margin-top: 4px; }
+
+    .debate-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .debate-col { padding: 16px; border-radius: var(--radius-md); }
+    .debate-col.bull { background: #f3faf5; border: 1px solid #ccebd7; }
+    .debate-col.bear { background: #fdf5f5; border: 1px solid #fad2d4; }
+    .debate-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .debate-col.bull .debate-title { color: #2a9d55; }
+    .debate-col.bear .debate-title { color: #d90429; }
+    .debate-content { font-size: 13px; line-height: 1.6; color: #3b4440; white-space: pre-wrap; }
+
+    .report-block { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: var(--radius-md); padding: 18px; margin-bottom: 12px; }
+    .report-block h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #1f2421; }
+    .report-text { font-size: 13px; line-height: 1.65; color: #43514a; white-space: pre-wrap; }
+
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .data-table th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid rgba(0, 0, 0, 0.08); text-transform: uppercase; }
+    .data-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
+    .data-table tr:hover td { background: #fbfbfb; }
+
+    .app-toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #1f2421; color: #fff; padding: 10px 20px;
+      border-radius: var(--radius-pill); font-size: 13px; font-weight: 500;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transform: translateY(100px); opacity: 0; transition: all 0.25s ease; z-index: 1000;
+    }
+    .app-toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 860px) {
+      .grid-2, .grid-4, .debate-wrapper { grid-template-columns: 1fr; }
+      header.studio-header { flex-direction: column; gap: 10px; border-radius: var(--radius-lg); }
+      .command-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Top Navigation Header -->
+  <header class="studio-header">
+    <div class="brand">
+      <div class="brand-avatar">REA</div>
+      <div class="brand-title">AI Trading Studio</div>
+      <span class="brand-tag">Virtual Office 3D</span>
+    </div>
+
+    <!-- Mode Selector -->
+    <div class="segmented-control">
+      <button class="segmented-item active" onclick="switchTab('town3d')">Văn Phòng 3D</button>
+      <button class="segmented-item" onclick="switchTab('studio')">Bảng Điều Khiển</button>
+      <button class="segmented-item" onclick="switchTab('live')">Tiến Độ</button>
+      <button class="segmented-item" onclick="switchTab('report')">Báo Cáo</button>
+      <button class="segmented-item" onclick="switchTab('history')">Lịch Sử</button>
+      <button class="segmented-item" onclick="switchTab('settings')">Cấu Hình API</button>
+    </div>
+
+    <!-- Real-time Status Indicator -->
+    <div class="status-pill">
+      <div class="status-dot" id="globalStatusDot"></div>
+      <span id="globalStatusText">Hệ thống sẵn sàng</span>
+    </div>
+  </header>
+
+  <!-- ================= TAB 0: 3D VIRTUAL TRADING OFFICE (HERO VIEW) ================= -->
+  <div class="tab-pane active" id="pane-town3d">
+    <!-- Diorama 3D Viewport -->
+    <div class="diorama-frame-card" id="dioramaFrame">
+      <!-- Top HUD Actions (Styled directly after user's reference image) -->
+      <div class="diorama-top-hud">
+        <div class="hud-btn-group">
+          <button class="hud-btn" id="btnToggleRotate" onclick="toggleAutoRotate()">Dừng xoay</button>
+          <button class="hud-btn primary-pill" id="btnToggleLabels" onclick="toggleLabels()">Tên</button>
+          <button class="hud-btn primary-pill" id="btnToggleBubbles" onclick="toggleBubbles()">Bong bóng</button>
+          <button class="hud-btn" onclick="resetOfficeCamera()">Toàn cảnh</button>
+          <button class="hud-btn" onclick="focusExecutiveOffice()">Tổng quan</button>
+          <button class="hud-btn" onclick="triggerAgentMeeting()">Tự chạy ▶</button>
+          <button class="hud-btn" id="btnProjector" onclick="toggleOfficeProjector()" style="background:#eaf8ef; color:#2a9d55; border-color:#b7e4c7; font-weight:700;">Màn Chiếu Nến</button>
+        </div>
+
+        <div class="hud-agent-counter">
+          <div class="status-dot"></div> 7 agent
+        </div>
+      </div>
+
+      <!-- WebGL Canvas -->
+      <canvas id="officeCanvas" style="width:100%; height:100%; display:block;"></canvas>
+
+      <!-- Speech Bubbles Layer (HTML overlay positioned via 3D World Coordinates) -->
+      <div id="speechOverlay"></div>
+
+      <!-- Hologram / Projector Screen Overlay (TradingView Candlestick in 3D Office) -->
+      <div id="officeProjectorOverlay" style="display:none; position:absolute; top:55px; left:20px; right:20px; bottom:65px; background:rgba(255, 255, 255, 0.95); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(0, 0, 0, 0.12); border-radius:var(--radius-lg); box-shadow:0 20px 45px rgba(0,0,0,0.18); z-index:30; padding:16px 20px; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:15px; font-weight:800; color:#111827;">Màn Chiếu Phân Tích Kỹ Thuật (TradingView)</span>
+            <span id="projSymbolBadge" class="brand-tag" style="background:#111827; color:#fff;">BTC-USD</span>
+            <span id="projLivePrice" style="font-family:var(--font-mono); font-weight:700; color:#2a9d55; font-size:15px;">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn-main btn-sub proj-period-btn" onclick="setProjectorPeriod('1mo', this)" style="padding:4px 10px; font-size:12px;">1 Tháng</button>
+            <button class="btn-main btn-sub proj-period-btn active" onclick="setProjectorPeriod('3mo', this)" style="padding:4px 10px; font-size:12px; background:#1f2421; color:#fff;">3 Tháng</button>
+            <button class="btn-main btn-sub proj-period-btn" onclick="setProjectorPeriod('6mo', this)" style="padding:4px 10px; font-size:12px;">6 Tháng</button>
+            <button class="btn-main btn-sub" onclick="toggleOfficeProjector()" style="padding:4px 12px; font-size:12px; font-weight:700; color:#ef4444; border-color:#fca5a5; margin-left:6px;">✕ Thu Gọn</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:14px; font-size:12px; margin-bottom:10px; padding:6px 12px; background:#f8faf9; border-radius:var(--radius-sm); border:1px solid rgba(0,0,0,0.05); flex-wrap:wrap; align-items:center;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:10px; height:3px; background:#f59e0b; border-radius:2px;"></span>
+            <b>SMA 200:</b> <span id="projSma200">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:10px; height:3px; background:#2563eb; border-radius:2px;"></span>
+            <b>SMA 50:</b> <span id="projSma50">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:10px; height:3px; background:#9333ea; border-radius:2px;"></span>
+            <b>EMA 10:</b> <span id="projEma10">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;" id="boxProjShortSL">
+            <span style="display:inline-block; width:10px; height:2px; background:#dc2626; border-top:1px dashed #dc2626;"></span>
+            <b style="color:#dc2626;">SL Lệnh Bán:</b> <span id="projShortSL">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;" id="boxProjLongStop">
+            <span style="display:inline-block; width:10px; height:2px; background:#f59e0b; border-top:1px dashed #f59e0b;"></span>
+            <b style="color:#d97706;">Chặn lỗ Spot:</b> <span id="projLongStop">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;" id="boxProjTP">
+            <span style="display:inline-block; width:10px; height:2px; background:#16a34a; border-top:1px dashed #16a34a;"></span>
+            <b style="color:#16a34a;">TP / Hỗ trợ:</b> <span id="projTP">-</span>
+          </div>
+          <span id="projSL" style="display:none;">-</span>
+        </div>
+        <div id="projectorChartContainer" style="flex:1; width:100%; min-height:260px; position:relative; border-radius:var(--radius-md); overflow:hidden; border:1px solid rgba(0,0,0,0.08); background:#ffffff;"></div>
+      </div>
+
+      <!-- Bottom Agent Dock (Matching Reference Image) -->
+      <div class="diorama-bottom-dock">
+        <button class="dock-btn" onclick="focusDepartment('tech')">Kỹ thuật</button>
+        <button class="dock-btn" onclick="focusDepartment('news')">Tin tức</button>
+        <button class="dock-btn" onclick="focusDepartment('social')">Tâm lý</button>
+        <button class="dock-btn" onclick="focusDepartment('fundamentals')">BCTC</button>
+        <button class="dock-btn" onclick="focusDepartment('bull')">Phe Mua</button>
+        <button class="dock-btn" onclick="focusDepartment('bear')">Phe Bán</button>
+        <button class="dock-btn" onclick="focusDepartment('trader')">Trader</button>
+      </div>
+    </div>
+
+    <!-- Smart Auto-Form / Command Prompt -->
+    <div class="smart-command-bar">
+      <div class="command-header">
+        <div class="command-title">Khởi Động Lệnh Họp Đa Tác Tử</div>
+        <div class="command-presets">
+          <span class="preset-chip" onclick="applyPreset('BTC-USD', 'crypto')">BTC/USD (Hôm nay)</span>
+          <span class="preset-chip" onclick="applyPreset('GC=F', 'commodity')">XAU/USD (Vàng thế giới)</span>
+          <span class="preset-chip" onclick="applyPreset('NVDA', 'stock')">NVDA (Báo cáo Q3)</span>
+          <span class="preset-chip" onclick="applyPreset('ETH-USD', 'crypto')">ETH/USD (Swing)</span>
+        </div>
+      </div>
+      <div class="command-input-row">
+        <input type="text" class="command-input" id="smartPromptInput" 
+               placeholder="Nhập yêu cầu phân tích (VD: Phân tích nến 1D và tin tức Bitcoin hôm nay xem xu hướng Mua hay Bán)"
+               onkeydown="if(event.key==='Enter') executeSmartCommand()">
+        <button class="btn-main btn-primary" onclick="executeSmartCommand()">
+          Khởi Chạy Họp AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 1: STUDIO (MANUAL CONFIG) ================= -->
+  <div class="tab-pane" id="pane-studio">
+    <div class="grid-2">
+      <div class="studio-card">
+        <div class="card-title">Tham Số Giao Dịch</div>
+        <div class="card-desc">Thiết lập mã tài sản và ngày chốt nến cần phân tích</div>
+
+        <div class="form-group">
+          <label class="form-label">Mã tài sản (Symbol / Ticker)</label>
+          <input type="text" class="std-input" id="symbolInput" value="BTC-USD" placeholder="VD: BTC-USD, GC=F, AAPL, NVDA">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ngày phân tích (Nên chọn hôm qua để có nến đóng đầy đủ)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="date" class="std-input" id="dateInput">
+            <button class="btn-main btn-sub" onclick="setDateOffset(-1)">Hôm qua</button>
+            <button class="btn-main btn-sub" onclick="setDateOffset(-2)">2 ngày trước</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-card">
+        <div class="card-title">Cấu Hình Bộ Não AI</div>
+        <div class="card-desc">Lựa chọn nhà cung cấp mô hình thực thi nhiệm vụ</div>
+
+        <div class="form-group">
+          <label class="form-label">Nhà cung cấp LLM</label>
+          <select class="std-select" id="providerSelect" onchange="onProviderChange()">
+            <option value="google">Google Gemini (Tốc độ cao, tối ưu chi phí)</option>
+            <option value="deepseek">DeepSeek (Suy luận logic & kinh tế xuất sắc)</option>
+            <option value="openai">OpenAI (Dòng GPT-4o & Mô hình suy luận o-series)</option>
+            <option value="anthropic">Anthropic Claude (Phân tích chuyên sâu)</option>
+            <option value="custom">Tùy chỉnh (OpenRouter / Ollama Local)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Trạng thái khóa kết nối</label>
+          <div style="display:flex; gap:8px;">
+            <input type="password" class="std-input" id="quickApiKey" placeholder="Chưa cài đặt khóa" readonly>
+            <button class="btn-main btn-sub" onclick="switchTab('settings')">Quản lý khóa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="studio-card">
+      <div class="card-title">Phòng Ban Tham Gia Phân Tích</div>
+      <div class="card-desc">Lựa chọn các chuyên gia khởi chạy trong đồ thị đa tác tử</div>
+
+      <div class="dept-grid">
+        <label class="dept-card checked">
+          <input type="checkbox" id="chkMarket" checked onchange="this.closest('.dept-card').classList.toggle('checked', this.checked)">
+          <div>
+            <div style="font-weight:600; font-size:13px;">Phòng Kỹ thuật</div>
+            <div style="font-size:12px; color:var(--text-muted);">Đọc nến, xu hướng, RSI, MACD</div>
+          </div>
+        </label>
+        <label class="dept-card checked">
+          <input type="checkbox" id="chkSentiment" checked onchange="this.closest('.dept-card').classList.toggle('checked', this.checked)">
+          <div>
+            <div style="font-weight:600; font-size:13px;">Phòng Tâm lý (MXH)</div>
+            <div style="font-size:12px; color:var(--text-muted);">Đo lường tâm lý cộng đồng và Twitter/X</div>
+          </div>
+        </label>
+        <label class="dept-card checked">
+          <input type="checkbox" id="chkNews" checked onchange="this.closest('.dept-card').classList.toggle('checked', this.checked)">
+          <div>
+            <div style="font-weight:600; font-size:13px;">Phòng Tin tức & Vĩ mô</div>
+            <div style="font-size:12px; color:var(--text-muted);">Quét tin Fed, lạm phát, địa chính trị</div>
+          </div>
+        </label>
+        <label class="dept-card checked">
+          <input type="checkbox" id="chkFundamentals" checked onchange="this.closest('.dept-card').classList.toggle('checked', this.checked)">
+          <div>
+            <div style="font-weight:600; font-size:13px;">Phòng Báo cáo Tài chính</div>
+            <div style="font-size:12px; color:var(--text-muted);">Đọc BCTC doanh nghiệp (cổ phiếu)</div>
+          </div>
+        </label>
+      </div>
+
+      <div style="margin-top:20px; text-align:right;">
+        <button class="btn-main btn-primary" id="btnLaunch" onclick="startAnalysis()" style="padding:12px 32px;">
+          Bắt Đầu Phân Tích
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 2: LIVE STREAM PIPELINE ================= -->
+  <div class="tab-pane" id="pane-live">
+    <div class="studio-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <div class="card-title" id="liveHeaderTitle">Tiến Độ Phân Tích Đa Tác Tử</div>
+          <div class="card-desc" id="liveHeaderSubtitle">Theo dõi quy trình phối hợp thời gian thực giữa các phòng ban</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:22px; font-weight:700; font-family:var(--font-mono);" id="liveTimer">00:00</div>
+          <div style="font-size:12px; color:var(--text-muted);" id="liveCallCount">Số lượt gọi AI: 0</div>
+        </div>
+      </div>
+
+      <div style="width:100%; height:6px; background:#f0f2f1; border-radius:999px; overflow:hidden; margin-bottom:20px;">
+        <div id="liveProgressBar" style="width:0%; height:100%; background:#1f2421; transition:width 0.4s;"></div>
+      </div>
+
+      <!-- Completion Card -->
+      <div id="liveCompleteBox" style="display:none; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-md); padding:16px; margin-bottom:18px; text-align:center;">
+        <div style="font-size:16px; font-weight:700; color:#15803d; margin-bottom:4px;" id="liveCompleteTitle">Đã phân tích xong!</div>
+        <div style="font-size:13px; color:#166534; margin-bottom:12px;">Đã xuất bản thành công bản tóm tắt tiếng Việt & file PDF theo chuẩn 5 Phút Trading.</div>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button class="btn-main btn-primary" onclick="switchTab('report')" style="padding:8px 20px;">Xem Báo Cáo Chi Tiết</button>
+          <button class="btn-main btn-sub" onclick="downloadCurrentPdf()" style="padding:8px 18px;">📄 Tải File PDF</button>
+          <button class="btn-main btn-sub" onclick="openCurrentPdfSystem()" style="padding:8px 18px;">Mở PDF Trên Máy Tính</button>
+        </div>
+      </div>
+
+      <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Nhật ký hệ thống thời gian thực</div>
+      <div style="background:#fcfcfc; border:1px solid rgba(0,0,0,0.08); border-radius:var(--radius-md); padding:14px; font-family:var(--font-mono); font-size:12px; color:#2b332f; max-height:220px; overflow-y:auto; line-height:1.6;" id="streamLogBox">
+        > Hệ thống sẵn sàng. Chọn mã và bấm Khởi chạy họp AI.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB 3: REPORT VIEW ================= -->
+  <div class="tab-pane" id="pane-report">
+    <div id="reportEmptyState" style="text-align:center; padding:70px 20px; color:var(--text-muted);">
+      <div style="font-size:16px; font-weight:600; color:#1f2421; margin-bottom:4px;">Chưa có báo cáo nào được mở</div>
+      <div style="font-size:13px;">Hãy khởi chạy phân tích từ Văn phòng 3D hoặc chọn một phiên trong tab Lịch sử.</div>
+    </div>
+
+    <div id="reportContent" style="display:none;">
+      <!-- Main Verdict Banner -->
+      <div class="verdict-box">
+        <div class="verdict-tag">Xếp hạng khuyến nghị cuối cùng</div>
+        <div class="verdict-pill verdict-hold" id="reportRatingBadge">HOLD</div>
+        <div id="reportActionSub" style="font-size:15px; font-weight:600; color:#2b332f; margin:10px auto; max-width:820px; line-height:1.6;"></div>
+        <div style="font-size:13px; color:var(--text-secondary);" id="reportMetaText">Mã: BTC-USD · Ngày: 2026-10-30</div>
+        
+        <div style="margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button class="btn-main btn-primary" onclick="downloadCurrentPdf()" style="padding:9px 22px; font-weight:700;">
+            Tải PDF Tóm Tắt (Chuẩn 5 Phút Trading)
+          </button>
+          <button class="btn-main btn-sub" onclick="openCurrentPdfSystem()" style="padding:9px 18px;" title="Mở trực tiếp ứng dụng đọc PDF trên máy tính">
+            Mở PDF Trên Máy Tính
+          </button>
+          <button class="btn-main btn-sub" onclick="previewPdfInTab()" style="padding:9px 18px;" title="Xem nhanh PDF ngay trên tab trình duyệt">
+            Xem Trực Tiếp PDF
+          </button>
+          <button class="btn-main btn-sub" onclick="sendCurrentReportTelegram()" style="padding:9px 18px; color:#0284c7; border-color:#bae6fd;" title="Gửi tóm tắt và file PDF qua Telegram">
+            Gửi Telegram
+          </button>
+          <button class="btn-main btn-sub" onclick="copyReportMarkdown()" style="padding:9px 18px;">
+            Sao chép Markdown
+          </button>
+          <button class="btn-main btn-sub" onclick="window.print()" style="padding:9px 18px;">
+            In trang
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Key Metric Cards (Minh bạch cả 2 phe: Long / Spot và Short Phái sinh) -->
+      <div class="grid-4" style="margin-bottom:18px;">
+        <div class="metric-card">
+          <div class="metric-name">Giá lúc chốt (Spot)</div>
+          <div class="metric-val" id="metricPrice">-</div>
+          <div class="metric-sub" id="metricPriceSub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Nến đóng cửa ngày phân tích</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-name">Tỷ trọng danh mục</div>
+          <div class="metric-val" id="metricAllocation" style="font-size:15px;">-</div>
+          <div class="metric-sub" id="metricAllocSub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Phân bổ danh mục tối ưu</div>
+        </div>
+        <div class="metric-card" style="border-left:3px solid #f59e0b;">
+          <div class="metric-name" style="color:#d97706; font-weight:700;">Phe Cầm Hàng (Spot / Long)</div>
+          <div class="metric-val" id="metricSpotPlan" style="font-size:14px; color:#1f2421; font-weight:700;">-</div>
+          <div class="metric-sub" id="metricSpotSub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Chặn lỗ & Canh gom hỗ trợ</div>
+        </div>
+        <div class="metric-card" style="border-left:3px solid #2563eb;">
+          <div class="metric-name" style="color:#2563eb; font-weight:700;">Phe Giao Dịch Bán (Short)</div>
+          <div class="metric-val" id="metricShortPlan" style="font-size:14px; color:#1f2421; font-weight:700;">-</div>
+          <div class="metric-sub" id="metricShortSub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Cắt lỗ trên SMA 50 · TP SMA 200</div>
+        </div>
+      </div>
+      <!-- Hidden legacy fallbacks -->
+      <span id="metricSL" style="display:none;"></span>
+      <span id="metricTarget" style="display:none;"></span>
+
+      <!-- Interactive TradingView Candlestick Chart Card -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+              <span>Biểu Đồ Nến Kỹ Thuật Trực Tuyến & Các Mốc Phân Tích</span>
+              <span id="chartSymbolBadge" class="brand-tag" style="background:#eaf8ef; color:#2a9d55; border-color:#b7e4c7;">BTC-USD</span>
+            </div>
+            <div class="card-desc" style="margin-bottom:0;">Biểu đồ nến TradingView thời gian thực, tích hợp đường SMA 200, SMA 50, EMA 10 & mốc Cắt lỗ (SL), Mục tiêu (TP)</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <div style="display:flex; background:#f1f5f3; border-radius:var(--radius-pill); padding:3px; border:1px solid rgba(0,0,0,0.08);">
+              <button class="btn-main chart-mode-btn" id="btnModeTvLive" onclick="switchChartMode('live')" style="background:#1f2421; color:#fff; padding:4px 12px; font-size:12px; font-weight:700; border-radius:var(--radius-pill);">TradingView Trực Tuyến</button>
+              <button class="btn-main chart-mode-btn" id="btnModePlan" onclick="switchChartMode('plan')" style="padding:4px 12px; font-size:12px; font-weight:600; border-radius:var(--radius-pill); background:transparent; border:none; box-shadow:none;">Bản Đồ Kế Hoạch AI</button>
+            </div>
+            <div id="chartPeriodButtonGroup" style="display:none; align-items:center; gap:6px;">
+              <span style="font-size:12px; color:var(--text-muted);">Khung:</span>
+              <button class="btn-main btn-sub chart-period-btn" onclick="setChartPeriod('1mo', this)" style="padding:4px 10px; font-size:12px;">1 Tháng</button>
+              <button class="btn-main btn-sub chart-period-btn active" onclick="setChartPeriod('3mo', this)" style="padding:4px 10px; font-size:12px; background:#1f2421; color:#fff;">3 Tháng</button>
+              <button class="btn-main btn-sub chart-period-btn" onclick="setChartPeriod('6mo', this)" style="padding:4px 10px; font-size:12px;">6 Tháng</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend Indicators Bar -->
+        <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:12px; margin-top:12px; padding:8px 12px; background:#fafafa; border:1px solid rgba(0,0,0,0.06); border-radius:var(--radius-md); align-items:center;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:12px; height:3px; background:#f59e0b; border-radius:2px;"></span>
+            <b>SMA 200</b>: <span id="legSma200">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:12px; height:3px; background:#2563eb; border-radius:2px;"></span>
+            <b>SMA 50</b>: <span id="legSma50">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:12px; height:3px; background:#9333ea; border-radius:2px;"></span>
+            <b>EMA 10</b>: <span id="legEma10">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;" id="boxLegShortSL">
+            <span style="display:inline-block; width:12px; height:2px; background:#dc2626; border-top:1px dashed #dc2626;"></span>
+            <b style="color:#dc2626;">SL Lệnh Bán (Short)</b>: <span id="legShortSL">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;" id="boxLegLongStop">
+            <span style="display:inline-block; width:12px; height:2px; background:#f59e0b; border-top:1px dashed #f59e0b;"></span>
+            <b style="color:#d97706;">Chặn lỗ Spot (Long)</b>: <span id="legLongStop">-</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;" id="boxLegTP">
+            <span style="display:inline-block; width:12px; height:2px; background:#16a34a; border-top:1px dashed #16a34a;"></span>
+            <b style="color:#16a34a;" id="legTPTitle">TP Bán / Hỗ trợ SMA 200</b>: <span id="legTP">-</span>
+          </div>
+          <span id="legSL" style="display:none;">-</span>
+          <div style="margin-left:auto; font-size:11.5px; color:var(--text-muted);" id="chartCandleHoverInfo">
+            Biểu đồ nến phát trực tiếp từ sàn Binance / Coinbase
+          </div>
+        </div>
+
+        <!-- 1. Live TradingView Chart Container (Default Active) -->
+        <div id="tradingviewLiveBox" style="width:100%; height:460px; margin-top:10px; position:relative; border-radius:var(--radius-md); overflow:hidden; border:1px solid rgba(0,0,0,0.08); background:#ffffff;">
+          <div class="tradingview-widget-container" style="height:100%; width:100%;">
+            <div id="tv_chart_container" style="height:100%; width:100%;"></div>
+          </div>
+        </div>
+
+        <!-- 2. AI Plan Interactive Chart Container (With SL / TP dashed price lines) -->
+        <div id="tradingviewChartBox" style="display:none; width:100%; height:420px; margin-top:10px; position:relative; border-radius:var(--radius-md); overflow:hidden; border:1px solid rgba(0,0,0,0.08); background:#ffffff;">
+          <div id="chartLoadingOverlay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); z-index:10; font-size:13px; color:var(--text-muted);">
+            Đang tải dữ liệu nến TradingView...
+          </div>
+        </div>
+      </div>
+
+      <!-- Table 6 Key Points -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">1. Bảng Kế Hoạch 6 Chỉ Số Trọng Điểm (Chuẩn 5 Phút Trading)</div>
+        <div class="card-desc">Tóm lược hành động nhanh dành cho nhà đầu tư</div>
+        <table class="data-table" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <th style="width:35%;">Hạng mục</th>
+              <th>Nhận định & Con số từ AI</th>
+            </tr>
+          </thead>
+          <tbody id="repSummaryTableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Easy Explanation List -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">2. Kế Hoạch Hành Động Nhanh & Dễ Hiểu</div>
+        <div class="card-desc">Diễn giải chiến lược đầu tư bằng ngôn ngữ trực quan, dễ áp dụng</div>
+        <div id="repEasyList" style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+        </div>
+      </div>
+
+      <!-- Technical Analysis Table & Support/Resistance -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">3. Báo Cáo Kỹ Thuật (Phòng Kỹ Thuật)</div>
+        <div class="card-desc">Đọc nến, các đường trung bình động và dao động động lượng</div>
+        
+        <table class="data-table" style="margin-top:12px; margin-bottom:16px;">
+          <thead>
+            <tr>
+              <th style="width:30%;">Chỉ Báo Kỹ Thuật</th>
+              <th style="width:25%;">Giá Trị Đo Được</th>
+              <th>AI Đọc Là Gì</th>
+            </tr>
+          </thead>
+          <tbody id="repTechTableBody">
+          </tbody>
+        </table>
+
+        <div style="background:#f4fbf7; border:1px solid #d1fae5; border-radius:var(--radius-md); padding:14px 18px;">
+          <div style="font-size:12px; font-weight:700; color:#065f46; text-transform:uppercase; margin-bottom:4px;">Vùng Hỗ Trợ & Kháng Cự Quan Trọng</div>
+          <div id="repSupportResistance" style="font-size:14px; color:#1f2937; line-height:1.6;"></div>
+        </div>
+      </div>
+
+      <!-- Sentiment & News Summaries -->
+      <div class="grid-2" style="margin-bottom:18px;">
+        <div class="studio-card">
+          <div class="card-title">4. Phòng Tâm Lý Mạng Xã Hội</div>
+          <div class="card-desc">Đo lường tâm lý đám đông Twitter/X & diễn đàn</div>
+          <div id="repSocialSummary" style="font-size:14px; line-height:1.6; color:#3b4440; margin-top:10px;"></div>
+        </div>
+        <div class="studio-card">
+          <div class="card-title">5. Phòng Tin Tức & Kinh Tế Vĩ Mô</div>
+          <div class="card-desc">Chính sách lãi suất Fed, dữ liệu lạm phát & địa chính trị</div>
+          <div id="repNewsSummary" style="font-size:14px; line-height:1.6; color:#3b4440; margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <!-- Bull vs Bear Debate -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">6. Tranh Luận Biện Chứng: Phe Mua (Bull) vs Phe Bán (Bear)</div>
+        <div class="card-desc">Đối chất trực diện giữa hai góc nhìn trước khi ra quyết định</div>
+        <div class="debate-wrapper">
+          <div class="debate-col bull">
+            <div class="debate-title" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#16a34a;"></span>
+              Luận điểm Phe Mua (Bull Researcher)
+            </div>
+            <div class="debate-content" id="repBullText">Đang trích xuất...</div>
+          </div>
+          <div class="debate-col bear">
+            <div class="debate-title" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#dc2626;"></span>
+              Cảnh báo rủi ro Phe Bán (Bear Researcher)
+            </div>
+            <div class="debate-content" id="repBearText">Đang trích xuất...</div>
+          </div>
+        </div>
+        <div style="margin-top:14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:var(--radius-md); padding:14px 18px;">
+          <div style="font-size:12px; font-weight:700; color:#1e40af; text-transform:uppercase; margin-bottom:4px;">Kết Luận Phân Xử của Trưởng Phòng Nghiên Cứu</div>
+          <div id="repResearchVerdict" style="font-size:14px; color:#1e3a8a; line-height:1.6;"></div>
+        </div>
+      </div>
+
+      <!-- Risk Committee 3 Angles -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">7. Hội Đồng Thẩm Định Rủi Ro (3 Góc Nhìn Chuyên Biệt)</div>
+        <div class="card-desc">Kiểm tra sức chịu đựng danh mục trước các kịch bản bất lợi</div>
+        <div class="risk-tri-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-top:14px;">
+          <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:var(--radius-md); padding:14px;">
+            <div style="font-size:13px; font-weight:700; color:#c2410c; margin-bottom:6px;">Phe Liều (Aggressive)</div>
+            <div id="repRiskAggressive" style="font-size:13px; line-height:1.55; color:#7c2d12;"></div>
+          </div>
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-md); padding:14px;">
+            <div style="font-size:13px; font-weight:700; color:#15803d; margin-bottom:6px;">Phe Thận Trọng (Conservative)</div>
+            <div id="repRiskConservative" style="font-size:13px; line-height:1.55; color:#14532d;"></div>
+          </div>
+          <div style="background:#f5f3ff; border:1px solid #ddd6fe; border-radius:var(--radius-md); padding:14px;">
+            <div style="font-size:13px; font-weight:700; color:#6d28d9; margin-bottom:6px;">Phe Trung Lập (Neutral)</div>
+            <div id="repRiskNeutral" style="font-size:13px; line-height:1.55; color:#4c1d95;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Milestones Table -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">8. Mốc Giá Để Anh Em Tự Theo Dõi</div>
+        <div class="card-desc">Kịch bản hành động được lập trình sẵn theo từng mức phản ứng giá</div>
+        <table class="data-table" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <th style="width:40%;">Nếu giá...</th>
+              <th>Theo kế hoạch của AI...</th>
+            </tr>
+          </thead>
+          <tbody id="repMilestonesBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Notes -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div class="card-title">9. Lưu Ý Quan Trọng Từ Ban Phân Tích</div>
+        <div id="repNotesList" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+        </div>
+      </div>
+
+      <!-- Collapsible Raw English Reports (Accordion) -->
+      <details style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:20px;">
+        <summary style="font-weight:700; font-size:14px; cursor:pointer; color:var(--text-secondary); user-select:none;">
+          📂 Xem Biên Bản Kỹ Thuật Gốc (Toàn Bộ Nhật Ký Tiếng Anh Của Các Agent)
+        </summary>
+        <div style="margin-top:16px; border-top:1px solid rgba(0,0,0,0.06); padding-top:16px;">
+          <div class="report-block">
+            <h3>Portfolio Manager (Quyết Định Danh Mục)</h3>
+            <div class="report-text" id="repFinalDecision"></div>
+          </div>
+          <div class="report-block">
+            <h3>Trader Execution Plan (Kế Hoạch Giao Dịch)</h3>
+            <div class="report-text" id="repTraderPlan"></div>
+          </div>
+          <div class="report-block">
+            <h3>Technical Market Report (Báo Cáo Kỹ Thuật Đầy Đủ)</h3>
+            <div class="report-text" id="repMarketReport"></div>
+          </div>
+          <div class="report-block">
+            <h3>Sentiment Report (Báo Cáo Tâm Lý MXH)</h3>
+            <div class="report-text" id="repSentimentReport"></div>
+          </div>
+          <div class="report-block">
+            <h3>News & Macro Report (Báo Cáo Tin Tức Vĩ Mô)</h3>
+            <div class="report-text" id="repNewsReport"></div>
+          </div>
+          <div class="report-block">
+            <h3>Full Risk Debate (Nhật Ký Tranh Luận Hội Đồng Rủi Ro)</h3>
+            <div class="report-text" id="repRiskDebate"></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ================= TAB 4: HISTORY ARCHIVE ================= -->
+  <div class="tab-pane" id="pane-history">
+    <div class="studio-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div>
+          <div class="card-title">Lịch Sử Phân Tích Đã Lưu</div>
+          <div class="card-desc" style="margin-bottom:0;">Danh sách toàn bộ các phiên họp và biên bản đã thực hiện</div>
+        </div>
+        <button class="btn-main btn-sub" onclick="loadHistory()">Làm mới</button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Mã Tài Sản</th>
+            <th>Ngày Phân Tích</th>
+            <th>Khuyến Nghị</th>
+            <th>Thời Gian Chạy</th>
+            <th>Lượt Gọi AI</th>
+            <th>Hành Động</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Đang tải lịch sử...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= TAB 5: SETTINGS ================= -->
+  <div class="tab-pane" id="pane-settings">
+    <div class="grid-2">
+      <!-- Gemini -->
+      <div class="studio-card">
+        <div class="card-title">Google Gemini</div>
+        <div class="card-desc">Lấy khóa tại aistudio.google.com</div>
+        <div class="form-group">
+          <label class="form-label">Gemini API Key</label>
+          <input type="password" class="std-input" id="key_google" placeholder="AIzaSy...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô hình Nhanh (Quick Think)</label>
+          <input type="text" class="std-input" id="model_google_quick" value="gemini-3.5-flash-lite">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô hình Sâu (Deep Think)</label>
+          <input type="text" class="std-input" id="model_google_deep" value="gemini-3.8-flash">
+        </div>
+        <button class="btn-main btn-sub" onclick="testKey('google')">Kiểm tra kết nối Gemini</button>
+      </div>
+
+      <!-- DeepSeek -->
+      <div class="studio-card">
+        <div class="card-title">DeepSeek</div>
+        <div class="card-desc">Lấy khóa tại platform.deepseek.com</div>
+        <div class="form-group">
+          <label class="form-label">DeepSeek API Key</label>
+          <input type="password" class="std-input" id="key_deepseek" placeholder="sk-...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô hình Nhanh (Quick Think)</label>
+          <input type="text" class="std-input" id="model_deepseek_quick" value="deepseek-chat">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô hình Sâu (Deep Think)</label>
+          <input type="text" class="std-input" id="model_deepseek_deep" value="deepseek-reasoner">
+        </div>
+        <button class="btn-main btn-sub" onclick="testKey('deepseek')">Kiểm tra kết nối DeepSeek</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- OpenAI -->
+      <div class="studio-card">
+        <div class="card-title">OpenAI (ChatGPT)</div>
+        <div class="card-desc">Lấy khóa tại platform.openai.com</div>
+        <div class="form-group">
+          <label class="form-label">OpenAI API Key</label>
+          <input type="password" class="std-input" id="key_openai" placeholder="sk-proj-...">
+        </div>
+        <button class="btn-main btn-sub" onclick="testKey('openai')">Kiểm tra kết nối OpenAI</button>
+      </div>
+
+      <!-- Custom -->
+      <div class="studio-card">
+        <div class="card-title">Tùy Chỉnh (OpenRouter / Ollama)</div>
+        <div class="card-desc">Chỉ định endpoint OpenAI-compatible bất kỳ</div>
+        <div class="form-group">
+          <label class="form-label">Base URL</label>
+          <input type="text" class="std-input" id="custom_base_url" value="https://openrouter.ai/api/v1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <input type="password" class="std-input" id="key_custom" placeholder="Khóa API (hoặc để trống nếu Ollama)">
+        </div>
+        <button class="btn-main btn-sub" onclick="testKey('custom')">Kiểm tra kết nối Tùy chỉnh</button>
+      </div>
+    </div>
+
+    <!-- Telegram Bot Notification & PDF Dispatch -->
+    <div class="studio-card" style="margin-top:20px; border-left:4px solid #0088cc;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+            <span>🤖 Cấu Hình Telegram Bot (Tự Động Bắn Báo Cáo & File PDF)</span>
+            <span class="brand-tag" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">5 Phút Trading</span>
+          </div>
+          <div class="card-desc" style="margin-bottom:0;">Tự động gửi tóm tắt nhận định và đính kèm trực tiếp file PDF 3 trang vào nhóm/chat Telegram ngay khi AI họp xong</div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:700; background:#f0fdf4; border:1px solid #bbf7d0; padding:6px 14px; border-radius:var(--radius-pill);">
+          <input type="checkbox" id="cfgTelegramEnabled" style="width:16px; height:16px; accent-color:#2a9d55;">
+          <span>Bật tự động gửi Telegram</span>
+        </label>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div>
+          <label class="form-label">Telegram Bot Token</label>
+          <input type="password" class="std-input" id="cfgTelegramToken" placeholder="Ví dụ: 123456789:ABCdefGHIjklMNOpqrSTUvwxYZ">
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Nhắn <code>/newbot</code> cho <b>@BotFather</b> trên Telegram để lấy token miễn phí</div>
+        </div>
+        <div>
+          <label class="form-label">Chat ID hoặc Group ID</label>
+          <input type="text" class="std-input" id="cfgTelegramChatId" placeholder="Ví dụ: 987654321 hoặc -100123456789">
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Nhắn tin cho bot rồi tra ID của bạn qua <b>@userinfobot</b> (nhóm thêm dấu <code>-</code>)</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn-main btn-sub" onclick="testTelegramBot()">
+          🔔 Kiểm Tra Kết Nối Telegram
+        </button>
+        <button class="btn-main btn-primary" onclick="saveConfigToServer()">
+          Lưu Cấu Hình Telegram
+        </button>
+      </div>
+    </div>
+
+    <div style="text-align:right; margin-top:20px;">
+      <button class="btn-main btn-primary" onclick="saveConfigToServer()" style="padding:12px 32px;">
+        Lưu Toàn Bộ Cấu Hình
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app-toast" id="toast">Thông báo</div>
+
+<!-- ================= JAVASCRIPT: 3D VIRTUAL OFFICE ENGINE (THREE.JS) ================= -->
+<script>
+  // Auto-detect API Base URL: If user opens index.html directly via file://, route to http://127.0.0.1:8888
+  const API_BASE = (window.location.protocol === 'file:' || !window.location.port) 
+    ? 'http://127.0.0.1:8888' 
+    : '';
+
+  let currentReportData = null;
+  let pollInterval = null;
+  let userConfig = {};
+
+  // 3D Engine Variables
+  let scene, camera, renderer, controls;
+  let autoRotate = true;
+  let showLabels = true;
+  let showBubbles = true;
+  let officeFurniture = [];
+  let officeWorkers = [];
+  let activeSpeechBubbles = [];
+
+  // Authentic trading office departments
+  const OFFICE_DEPTS = [
+    { id: "castle", name: "Điều Hành", role: "Giám Đốc Danh Mục", pos: [0, 0, 0], color: 0xd98282, label: "Lãnh đạo" },
+    { id: "tech", name: "Kỹ Thuật", role: "Đọc Nến & Chỉ Báo", pos: [-6.5, 0, -4.5], color: 0x82b2d9, label: "Nghiên cứu nến" },
+    { id: "news", name: "Tin Tức", role: "Kinh Tế Vĩ Mô & Fed", pos: [6.5, 0, -4.5], color: 0x8dd3c7, label: "Vĩ mô & Fed" },
+    { id: "social", name: "Tâm Lý", role: "Đo Lường MXH", pos: [7.2, 0, 3.5], color: 0xfdb462, label: "Tâm lý đám đông" },
+    { id: "fundamentals", name: "Tài Chính", role: "BCTC & Định Giá", pos: [-7.2, 0, 3.5], color: 0xbebada, label: "Đọc BCTC" },
+    { id: "bull", name: "Phe Mua", role: "Tìm Cơ Hội Tăng", pos: [-2.5, 0, 6.2], color: 0x80b1d3, label: "Luận điểm Mua" },
+    { id: "bear", name: "Phe Bán", role: "Cảnh Báo Rủi Ro", pos: [2.5, 0, 6.2], color: 0xfb8072, label: "Cảnh báo Bán" },
+    { id: "trader", name: "Trader", role: "Lập Lệnh Vào/Ra", pos: [0, 0, 8.5], color: 0x85c17d, label: "Ra quyết định lệnh" }
+  ];
+
+  // Authentic professional office dialogs (No AI slop, no robotic clichés)
+  const OFFICE_DIALOGS = [
+    { dept: "tech", text: "Đã đối soát volume 24h, nến ngày giữ vững hỗ trợ." },
+    { dept: "news", text: "Biên bản Fed giữ nguyên lãi suất, thị trường ổn định." },
+    { dept: "social", text: "Chỉ số sợ hãi và tham lam đạt 68, phe Mua đang hưng phấn." },
+    { dept: "fundamentals", text: "Dòng tiền hoạt động kinh doanh dương, tỷ lệ P/E hợp lý." },
+    { dept: "bull", text: "Dòng tiền tổ chức tích lũy liên tục, canh nhịp bứt phá." },
+    { dept: "bear", text: "Vùng cản trên còn nhiều lệnh treo bán, cần thận trọng." },
+    { dept: "trader", text: "Đã tính điểm cắt lỗ chặt chẽ, tối ưu tỷ lệ R:R." },
+    { dept: "castle", text: "Uống matcha, chờ các phòng nộp đủ tài liệu để ký duyệt." }
+  ];
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    setDateOffset(-1);
+    await loadConfigFromServer();
+    loadHistory();
+    startPolling();
+    initVirtualOffice3D();
+  });
+
+  function setDateOffset(offsetDays) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    document.getElementById("dateInput").value = `${yyyy}-${mm}-${dd}`;
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll(".segmented-item").forEach((btn, idx) => {
+      const tabs = ['town3d', 'studio', 'live', 'report', 'history', 'settings'];
+      btn.classList.toggle("active", tabs[idx] === tabId);
+    });
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+    const target = document.getElementById("pane-" + tabId);
+    if (target) {
+      target.classList.add("active");
+      if (tabId === 'town3d' && renderer) onWindowResize();
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 3500);
+  }
+
+  // --- Smart Presets & Auto-Form ---
+  function setDeptCheckbox(id, isChecked) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.checked = isChecked;
+    el.closest('.dept-card')?.classList.toggle('checked', isChecked);
+  }
+
+  function applyPreset(sym, assetType) {
+    document.getElementById("symbolInput").value = sym;
+    setDateOffset(-1);
+    setDeptCheckbox("chkMarket", true);
+    setDeptCheckbox("chkSentiment", true);
+    setDeptCheckbox("chkNews", true);
+    setDeptCheckbox("chkFundamentals", (assetType === 'stock'));
+    showToast(`Đã nạp thông số chuẩn cho ${sym}`);
+    spawnSpeechBubble("castle", `Đã nhận mã ${sym}, sẵn sàng phiên họp!`);
+  }
+
+  function executeSmartCommand() {
+    const p = document.getElementById("smartPromptInput").value.trim().toLowerCase();
+    let sym = "BTC-USD", type = "crypto";
+    if (p.includes("vàng") || p.includes("gold") || p.includes("gc=f")) { sym = "GC=F"; type = "commodity"; }
+    else if (p.includes("eth") || p.includes("ethereum")) { sym = "ETH-USD"; type = "crypto"; }
+    else if (p.includes("nvda") || p.includes("nvidia")) { sym = "NVDA"; type = "stock"; }
+    else if (p.includes("aapl") || p.includes("apple")) { sym = "AAPL"; type = "stock"; }
+
+    applyPreset(sym, type);
+    startAnalysis();
+  }
+
+  // ================= 3D VIRTUAL OFFICE DIORAMA (THREE.JS) =================
+  function initVirtualOffice3D() {
+    const frame = document.getElementById("dioramaFrame");
+    const canvas = document.getElementById("officeCanvas");
+    if (!frame || !canvas) return;
+
+    const width = frame.clientWidth || 1000;
+    const height = frame.clientHeight || 680;
+
+    // 1. Scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xcbe4de); // Soft soothing mint studio
+
+    // 2. Camera (Isometric view matching reference photo)
+    camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 1000);
+    camera.position.set(24, 22, 28);
+
+    // 3. Renderer with soft shadows
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // 4. Orbit Controls
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2.2;
+    controls.minDistance = 18;
+    controls.maxDistance = 55;
+    controls.autoRotate = autoRotate;
+    controls.autoRotateSpeed = 0.5;
+    controls.target.set(0, 1.2, 1);
+
+    // 5. Lighting (Warm office light + soft ambient)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xc0d8ce, 0.85);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfff8ee, 1.05);
+    sunLight.position.set(22, 38, 18);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 80;
+    sunLight.shadow.camera.left = -22;
+    sunLight.shadow.camera.right = 22;
+    sunLight.shadow.camera.top = 22;
+    sunLight.shadow.camera.bottom = -22;
+    sunLight.shadow.bias = -0.0005;
+    scene.add(sunLight);
+
+    const fillLight = new THREE.DirectionalLight(0xbad2c8, 0.4);
+    fillLight.position.set(-15, 20, -15);
+    scene.add(fillLight);
+
+    // 6. Build the Open-Plan Office Diorama
+    buildOfficeDiorama();
+
+    // 7. Initial Floating Dialogs
+    setTimeout(() => {
+      spawnSpeechBubble("castle", "Đang giữ cổng duyệt chiến lược tuần này.");
+      spawnSpeechBubble("tech", "Nến ngày phản ứng tốt tại vùng hỗ trợ.");
+      spawnSpeechBubble("news", "Mang tài liệu vĩ mô sang bàn Giám đốc.");
+    }, 600);
+
+    window.addEventListener("resize", onWindowResize);
+    animate();
+  }
+
+  function buildOfficeDiorama() {
+    // 1. Diorama Ceramic Tray (Smooth rounded beveled tray as in reference photo)
+    const trayGeo = new THREE.BoxGeometry(25, 1.2, 21);
+    const trayMat = new THREE.MeshLambertMaterial({ color: 0xfcfbf8 }); // Warm cream ceramic
+    const tray = new THREE.Mesh(trayGeo, trayMat);
+    tray.position.y = -0.6;
+    tray.receiveShadow = true;
+    scene.add(tray);
+
+    // 2. Light Oak Wood Floor
+    const floorGeo = new THREE.BoxGeometry(24.2, 0.1, 20.2);
+    const floorMat = new THREE.MeshLambertMaterial({ color: 0xeee7dc }); // Nordic light bleached oak
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.position.y = 0.05;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // 3. Central Executive Glass Castle Pavilion (Reference central structure)
+    buildCentralCastle();
+
+    // 4. Low Partition Walls dividing rooms (Pastel partitions)
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const pWalls = [
+      // North partitions
+      { w: 0.2, h: 1.1, d: 6, x: -3.8, z: -4.5 },
+      { w: 0.2, h: 1.1, d: 6, x: 3.8, z: -4.5 },
+      // South partitions
+      { w: 0.2, h: 1.1, d: 6.5, x: -4.2, z: 4.8 },
+      { w: 0.2, h: 1.1, d: 6.5, x: 4.2, z: 4.8 },
+      // Horizontal dividers
+      { w: 5.5, h: 1.1, d: 0.2, x: -6.8, z: 0.5 },
+      { w: 5.5, h: 1.1, d: 0.2, x: 6.8, z: 0.5 }
+    ];
+    pWalls.forEach(pw => {
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(pw.w, pw.h, pw.d), wallMat);
+      wall.position.set(pw.x, pw.h / 2 + 0.1, pw.z);
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      scene.add(wall);
+    });
+
+    // 5. Office Cubicles & Furniture
+    // Tech Desk (North-West)
+    createOfficeDesk(-6.5, -4.5, 0, 0x2a9d55);
+    createWhiteboard(-9.5, -6, Math.PI / 4);
+
+    // News Desk (North-East)
+    createOfficeDesk(6.5, -4.5, Math.PI, 0x0071e3);
+    createBookshelf(9.2, -6, 0);
+
+    // Social Lounge (South-East)
+    createLoungeArea(7.2, 3.8);
+
+    // Fundamentals Office (South-West)
+    createOfficeDesk(-7.2, 3.8, Math.PI / 2, 0xbf5af2);
+    createFilingCabinet(-9.4, 5.5);
+
+    // War Room Debate Table (South-Center)
+    createDebateArena(0, 6.2);
+
+    // Trader Station (Southmost)
+    createOfficeDesk(0, 8.5, 0, 0x2a9d55);
+
+    // Indoor decorative plants & water cooler
+    createIndoorPlant(-10.2, -1.5);
+    createIndoorPlant(10.2, -1.5);
+    createIndoorPlant(0, -8.5);
+    createWaterCooler(-3.5, 0);
+
+    // 6. Spawn Workers (Avatars)
+    OFFICE_DEPTS.forEach((dept, i) => {
+      createOfficeWorker(dept, i);
+    });
+  }
+
+  function buildCentralCastle() {
+    const castleGroup = new THREE.Group();
+    castleGroup.position.set(0, 0.1, 0);
+
+    // Central Building Block (White stone)
+    const centerBody = new THREE.Mesh(
+      new THREE.BoxGeometry(4.2, 3.2, 4.2),
+      new THREE.MeshLambertMaterial({ color: 0xfdfdfc })
+    );
+    centerBody.position.y = 1.6;
+    centerBody.castShadow = true;
+    castleGroup.add(centerBody);
+
+    // Conical pastel towers on corners (Matching reference photo castle style)
+    const towerMat = new THREE.MeshLambertMaterial({ color: 0xf8f8f6 });
+    const roofColors = [0xd98282, 0x82b2d9, 0xfdb462, 0x8dd3c7];
+
+    [[-2, -2], [2, -2], [-2, 2], [2, 2]].forEach(([cx, cz], idx) => {
+      const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 3.8, 12), towerMat);
+      tower.position.set(cx, 1.9, cz);
+      tower.castShadow = true;
+      castleGroup.add(tower);
+
+      const roof = new THREE.Mesh(
+        new THREE.ConeGeometry(0.8, 1.6, 12),
+        new THREE.MeshLambertMaterial({ color: roofColors[idx] })
+      );
+      roof.position.set(cx, 4.5, cz);
+      roof.castShadow = true;
+      castleGroup.add(roof);
+    });
+
+    // Central Main Conical Tower
+    const mainRoof = new THREE.Mesh(
+      new THREE.ConeGeometry(1.6, 2.2, 12),
+      new THREE.MeshLambertMaterial({ color: 0x822727 })
+    );
+    mainRoof.position.y = 4.2;
+    mainRoof.castShadow = true;
+    castleGroup.add(mainRoof);
+
+    // Glass French Entrance
+    const glassEntrance = new THREE.Mesh(
+      new THREE.BoxGeometry(1.8, 2.2, 0.2),
+      new THREE.MeshLambertMaterial({ color: 0xbfd3cc, transparent: true, opacity: 0.65 })
+    );
+    glassEntrance.position.set(0, 1.1, 2.15);
+    castleGroup.add(glassEntrance);
+
+    scene.add(castleGroup);
+  }
+
+  function createOfficeDesk(x, z, rot, chartScreenColor) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.1, z);
+    group.rotation.y = rot;
+
+    // Wooden desk top
+    const deskTop = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.08, 1.2),
+      new THREE.MeshLambertMaterial({ color: 0xf5ede1 })
+    );
+    deskTop.position.y = 0.9;
+    deskTop.castShadow = true;
+    group.add(deskTop);
+
+    // Metal legs
+    const legMat = new THREE.MeshLambertMaterial({ color: 0xd2d2d0 });
+    [[-1.1, -0.5], [1.1, -0.5], [-1.1, 0.5], [1.1, 0.5]].forEach(([lx, lz]) => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9), legMat);
+      leg.position.set(lx, 0.45, lz);
+      group.add(leg);
+    });
+
+    // Dual Monitors (with glowing chart texture color)
+    [-0.5, 0.5].forEach(mx => {
+      const monitor = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.5, 0.04),
+        new THREE.MeshBasicMaterial({ color: chartScreenColor || 0x2a9d55 })
+      );
+      monitor.position.set(mx, 1.3, -0.2);
+      group.add(monitor);
+
+      const stand = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.03, 0.03, 0.35),
+        new THREE.MeshLambertMaterial({ color: 0x333333 })
+      );
+      stand.position.set(mx, 1.05, -0.2);
+      group.add(stand);
+    });
+
+    // Swivel Chair
+    const chair = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 0.6, 0.6),
+      new THREE.MeshLambertMaterial({ color: 0x4a5550 })
+    );
+    chair.position.set(0, 0.5, 0.6);
+    chair.castShadow = true;
+    group.add(chair);
+
+    scene.add(group);
+  }
+
+  function createWhiteboard(x, z, rot) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.1, z);
+    group.rotation.y = rot;
+
+    const board = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 0.06), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    board.position.y = 1.4;
+    group.add(board);
+
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.5, 0.04), new THREE.MeshLambertMaterial({ color: 0xd8d8d8 }));
+    frame.position.y = 1.4;
+    group.add(frame);
+
+    scene.add(group);
+  }
+
+  function createDebateArena(x, z) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.1, z);
+
+    // Round conference table
+    const table = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.1, 16), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    table.position.y = 0.85;
+    table.castShadow = true;
+    group.add(table);
+
+    const tableLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.85), new THREE.MeshLambertMaterial({ color: 0xd2d2d0 }));
+    tableLeg.position.y = 0.42;
+    group.add(tableLeg);
+
+    // Bull Chair (Blue-green) vs Bear Chair (Terracotta)
+    const bullChair = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshLambertMaterial({ color: 0x80b1d3 }));
+    bullChair.position.set(-1.4, 0.5, 0);
+    group.add(bullChair);
+
+    const bearChair = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshLambertMaterial({ color: 0xfb8072 }));
+    bearChair.position.set(1.4, 0.5, 0);
+    group.add(bearChair);
+
+    scene.add(group);
+  }
+
+  function createLoungeArea(x, z) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.1, z);
+
+    // Pastel Sofa
+    const sofa = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 1.1), new THREE.MeshLambertMaterial({ color: 0xfde2e4 }));
+    sofa.position.y = 0.45;
+    group.add(sofa);
+
+    // Coffee Table with tiny mug
+    const table = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.45), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    table.position.set(0, 0.25, 1.1);
+    group.add(table);
+
+    scene.add(group);
+  }
+
+  function createIndoorPlant(x, z) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.1, z);
+
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.25, 0.6, 8), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    pot.position.y = 0.3;
+    group.add(pot);
+
+    const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 8), new THREE.MeshLambertMaterial({ color: 0x588157 }));
+    leaves.position.y = 0.85;
+    group.add(leaves);
+
+    scene.add(group);
+  }
+
+  function createWaterCooler(x, z) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.1, z);
+
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.1, 0.5), new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }));
+    base.position.y = 0.55;
+    group.add(base);
+
+    const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.55, 8), new THREE.MeshLambertMaterial({ color: 0xa8dadc, transparent: true, opacity: 0.7 }));
+    bottle.position.y = 1.35;
+    group.add(bottle);
+
+    scene.add(group);
+  }
+
+  function createFilingCabinet(x, z) {
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 0.8), new THREE.MeshLambertMaterial({ color: 0xd9dcd6 }));
+    cab.position.set(x, 0.9, z);
+    scene.add(cab);
+  }
+
+  function createBookshelf(x, z, rot) {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.0, 0.5), new THREE.MeshLambertMaterial({ color: 0xf5ede1 }));
+    shelf.position.set(x, 1.1, z);
+    scene.add(shelf);
+  }
+
+  function createOfficeWorker(dept, idx) {
+    const group = new THREE.Group();
+    
+    // Torso / Suit in department color
+    const torso = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.26, 0.65, 8),
+      new THREE.MeshLambertMaterial({ color: dept.color })
+    );
+    torso.position.y = 0.35;
+    group.add(torso);
+
+    // Head
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28, 12, 12),
+      new THREE.MeshLambertMaterial({ color: 0xffe3d1 })
+    );
+    head.position.y = 0.82;
+    group.add(head);
+
+    // Hair / Hat (Pastel cap)
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.29, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshLambertMaterial({ color: 0x4a3f35 })
+    );
+    hair.position.y = 0.85;
+    group.add(hair);
+
+    group.position.set(dept.pos[0] + 0.8, 0.1, dept.pos[2] + 0.8);
+    scene.add(group);
+
+    officeWorkers.push({
+      group,
+      deptId: dept.id,
+      name: dept.name,
+      basePos: [dept.pos[0] + 0.8, 0.1, dept.pos[2] + 0.8],
+      targetPos: null,
+      bobOffset: Math.random() * Math.PI * 2
+    });
+  }
+
+  // --- Dynamic Speech Bubbles Layer ---
+  function spawnSpeechBubble(deptId, text, isHighlight = false) {
+    if (!showBubbles) return;
+    const dept = OFFICE_DEPTS.find(d => d.id === deptId);
+    if (!dept) return;
+
+    // Remove existing bubble for this dept
+    const existIdx = activeSpeechBubbles.findIndex(b => b.deptId === deptId);
+    if (existIdx !== -1) {
+      activeSpeechBubbles[existIdx].element.remove();
+      activeSpeechBubbles.splice(existIdx, 1);
+    }
+
+    const overlay = document.getElementById("speechOverlay");
+    const div = document.createElement("div");
+    div.className = "speech-bubble" + (isHighlight ? " highlight" : "");
+    div.innerHTML = `<span class="bubble-tag">${dept.name}</span> <span>${text}</span>`;
+    overlay.appendChild(div);
+
+    activeSpeechBubbles.push({
+      deptId,
+      worldPos: new THREE.Vector3(dept.pos[0], 3.8, dept.pos[2]),
+      element: div,
+      createdAt: Date.now()
+    });
+
+    // Auto-dismiss after 10s
+    setTimeout(() => {
+      const idx = activeSpeechBubbles.findIndex(b => b.element === div);
+      if (idx !== -1) {
+        div.style.opacity = "0";
+        setTimeout(() => {
+          div.remove();
+          const cur = activeSpeechBubbles.indexOf(activeSpeechBubbles[idx]);
+          if (cur !== -1) activeSpeechBubbles.splice(cur, 1);
+        }, 300);
+      }
+    }, 10000);
+  }
+
+  function updateSpeechBubblesPosition() {
+    const frame = document.getElementById("dioramaFrame");
+    if (!frame || !camera) return;
+    const w = frame.clientWidth;
+    const h = frame.clientHeight;
+
+    activeSpeechBubbles.forEach(b => {
+      const p = b.worldPos.clone().project(camera);
+      if (p.z > 1) {
+        b.element.style.display = "none";
+      } else {
+        b.element.style.display = showBubbles ? "flex" : "none";
+        const sx = (p.x * 0.5 + 0.5) * w;
+        const sy = (-(p.y * 0.5) + 0.5) * h;
+        b.element.style.left = `${sx}px`;
+        b.element.style.top = `${sy}px`;
+      }
+    });
+  }
+
+  // --- HUD Controls ---
+  function toggleAutoRotate() {
+    autoRotate = !autoRotate;
+    controls.autoRotate = autoRotate;
+    const btn = document.getElementById("btnToggleRotate");
+    btn.innerText = autoRotate ? "Dừng xoay" : "Tự xoay";
+    btn.classList.toggle("primary-pill", !autoRotate);
+  }
+
+  function toggleLabels() {
+    showLabels = !showLabels;
+    document.getElementById("btnToggleLabels").classList.toggle("primary-pill", showLabels);
+  }
+
+  function toggleBubbles() {
+    showBubbles = !showBubbles;
+    document.getElementById("btnToggleBubbles").classList.toggle("primary-pill", showBubbles);
+    updateSpeechBubblesPosition();
+  }
+
+  function resetOfficeCamera() {
+    TWEEN_CAMERA(camera.position, { x: 24, y: 22, z: 28 }, controls.target, { x: 0, y: 1.2, z: 1 });
+  }
+
+  function focusExecutiveOffice() {
+    TWEEN_CAMERA(camera.position, { x: 0, y: 14, z: 16 }, controls.target, { x: 0, y: 2.2, z: 0 });
+    spawnSpeechBubble("castle", "Đang điều phối tổng quan chiến lược toàn sàn.", true);
+  }
+
+  function focusDepartment(deptId) {
+    const dept = OFFICE_DEPTS.find(d => d.id === deptId);
+    if (!dept) return;
+
+    TWEEN_CAMERA(
+      camera.position,
+      { x: dept.pos[0] + 6, y: 9, z: dept.pos[2] + 9 },
+      controls.target,
+      { x: dept.pos[0], y: 1.2, z: dept.pos[2] }
+    );
+
+    const dialog = OFFICE_DIALOGS.find(d => d.dept === deptId) || { text: `${dept.name} đang làm việc.` };
+    spawnSpeechBubble(dept.id, dialog.text, true);
+  }
+
+  function triggerAgentMeeting() {
+    showToast("Đang mô phỏng: Các nhân viên di chuyển sang phòng họp thảo luận!");
+    officeWorkers.forEach(w => {
+      // Walk towards central debate arena or castle
+      w.targetPos = [
+        (Math.random() - 0.5) * 4,
+        0.1,
+        5 + Math.random() * 2
+      ];
+    });
+
+    setTimeout(() => {
+      spawnSpeechBubble("bull", "Phe Mua đề xuất giải ngân 20% vốn tại hỗ trợ.");
+      spawnSpeechBubble("bear", "Phe Bán yêu cầu đặt Stop Loss cách cản 2.5%.");
+    }, 800);
+  }
+
+  function TWEEN_CAMERA(fromPos, toPos, fromTarget, toTarget) {
+    let t = 0;
+    const timer = setInterval(() => {
+      t += 0.05;
+      fromPos.x += (toPos.x - fromPos.x) * 0.15;
+      fromPos.y += (toPos.y - fromPos.y) * 0.15;
+      fromPos.z += (toPos.z - fromPos.z) * 0.15;
+      fromTarget.x += (toTarget.x - fromTarget.x) * 0.15;
+      fromTarget.y += (toTarget.y - fromTarget.y) * 0.15;
+      fromTarget.z += (toTarget.z - fromTarget.z) * 0.15;
+      if (t >= 1) clearInterval(timer);
+    }, 16);
+  }
+
+  function onWindowResize() {
+    const frame = document.getElementById("dioramaFrame");
+    if (!frame || !renderer || !camera) return;
+    const w = frame.clientWidth;
+    const h = frame.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    updateSpeechBubblesPosition();
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+
+    const now = Date.now() * 0.004;
+    officeWorkers.forEach(w => {
+      // Subtle natural breathing/bobbing
+      w.group.position.y = 0.1 + Math.sin(now + w.bobOffset) * 0.04;
+
+      // Walking interpolation
+      if (w.targetPos) {
+        w.group.position.x += (w.targetPos[0] - w.group.position.x) * 0.035;
+        w.group.position.z += (w.targetPos[2] - w.group.position.z) * 0.035;
+        const d = Math.hypot(w.targetPos[0] - w.group.position.x, w.targetPos[2] - w.group.position.z);
+        if (d < 0.2) w.targetPos = null;
+      }
+    });
+
+    updateSpeechBubblesPosition();
+    renderer.render(scene, camera);
+  }
+
+  // --- API Handlers ---
+  async function loadConfigFromServer() {
+    try {
+      const res = await fetch(`${API_BASE}/api/config`);
+      userConfig = await res.json();
+      const keys = userConfig.keys || {};
+      const models = userConfig.models || {};
+      document.getElementById("key_google").value = keys.google || "";
+      document.getElementById("key_deepseek").value = keys.deepseek || "";
+      document.getElementById("key_openai").value = keys.openai || "";
+      document.getElementById("key_custom").value = keys.custom || "";
+      document.getElementById("custom_base_url").value = models.custom_base_url || "https://openrouter.ai/api/v1";
+
+      if (models.google_quick && !models.google_quick.includes("2.5")) {
+        document.getElementById("model_google_quick").value = models.google_quick;
+      } else {
+        document.getElementById("model_google_quick").value = "gemini-3.5-flash-lite";
+      }
+      if (models.google_deep && !models.google_deep.includes("2.5")) {
+        document.getElementById("model_google_deep").value = models.google_deep;
+      } else {
+        document.getElementById("model_google_deep").value = "gemini-3.8-flash";
+      }
+      if (models.deepseek_quick) document.getElementById("model_deepseek_quick").value = models.deepseek_quick;
+      if (models.deepseek_deep) document.getElementById("model_deepseek_deep").value = models.deepseek_deep;
+
+      const tg = userConfig.telegram || {};
+      if (document.getElementById("cfgTelegramToken")) {
+        document.getElementById("cfgTelegramToken").value = tg.bot_token || "";
+        document.getElementById("cfgTelegramChatId").value = tg.chat_id || "";
+        document.getElementById("cfgTelegramEnabled").checked = !!tg.enabled;
+      }
+
+      document.getElementById("providerSelect").value = userConfig.provider || "google";
+      onProviderChange();
+    } catch (e) {
+      console.warn("Chưa kết nối máy chủ API tại " + API_BASE, e);
+    }
+  }
+
+  function onProviderChange() {
+    const prov = document.getElementById("providerSelect").value;
+    const keys = userConfig.keys || {};
+    const key = keys[prov] || "";
+    const quickInput = document.getElementById("quickApiKey");
+    quickInput.value = key ? "••••••••••••••••" : "";
+    quickInput.placeholder = key ? "Đã cài đặt khóa " + prov : "Chưa có khóa, bấm Quản lý khóa để nhập";
+  }
+
+  async function saveConfigToServer() {
+    const prov = document.getElementById("providerSelect").value;
+    const tgToken = document.getElementById("cfgTelegramToken") ? document.getElementById("cfgTelegramToken").value.trim() : "";
+    const tgChatId = document.getElementById("cfgTelegramChatId") ? document.getElementById("cfgTelegramChatId").value.trim() : "";
+    const tgEnabled = document.getElementById("cfgTelegramEnabled") ? document.getElementById("cfgTelegramEnabled").checked : false;
+
+    const cfg = {
+      provider: prov,
+      keys: {
+        google: document.getElementById("key_google").value.trim(),
+        deepseek: document.getElementById("key_deepseek").value.trim(),
+        openai: document.getElementById("key_openai").value.trim(),
+        custom: document.getElementById("key_custom").value.trim(),
+      },
+      models: {
+        google_quick: document.getElementById("model_google_quick").value.trim(),
+        google_deep: document.getElementById("model_google_deep").value.trim(),
+        deepseek_quick: document.getElementById("model_deepseek_quick").value.trim(),
+        deepseek_deep: document.getElementById("model_deepseek_deep").value.trim(),
+        custom_base_url: document.getElementById("custom_base_url").value.trim(),
+      },
+      telegram: {
+        bot_token: tgToken,
+        chat_id: tgChatId,
+        enabled: tgEnabled
+      }
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/save_config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cfg)
+      });
+      const data = await res.json();
+      userConfig = cfg;
+      onProviderChange();
+      showToast(data.message || "Đã lưu cài đặt!");
+    } catch (e) {
+      alert("Lỗi khi lưu cài đặt: " + e.message + "\nHãy đảm bảo máy chủ đang chạy bằng file 'Chạy AI Trading - Apple UI.bat'!");
+    }
+  }
+
+  async function testKey(provider) {
+    showToast(`Đang kiểm tra kết nối khóa ${provider.toUpperCase()}...`);
+    const key = document.getElementById("key_" + provider).value.trim();
+    const base_url = provider === "custom" ? document.getElementById("custom_base_url").value.trim() : "";
+
+    if (!key) {
+      return alert(`Vui lòng nhập API Key cho ${provider.toUpperCase()} trước khi kiểm tra!`);
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/test_key`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, api_key: key, base_url })
+      });
+      const data = await res.json();
+      alert(data.message);
+    } catch (e) {
+      alert("Lỗi kết nối máy chủ: " + e.message + "\n\nNguyên nhân: Máy chủ Python chưa được khởi động hoặc bị chặn.\nHãy bấm đúp vào file 'Chạy AI Trading - Apple UI.bat' để bật máy chủ và mở bằng link: http://127.0.0.1:8888");
+    }
+  }
+
+  // --- Start Analysis ---
+  async function startAnalysis() {
+    const symbol = document.getElementById("symbolInput").value.trim().toUpperCase();
+    const date = document.getElementById("dateInput").value.trim();
+    const provider = document.getElementById("providerSelect").value;
+    const keys = userConfig.keys || {};
+    const api_key = keys[provider] || document.getElementById("key_" + provider)?.value?.trim() || "";
+
+    if (!symbol) return alert("Vui lòng nhập mã tài sản!");
+    if (!date) return alert("Vui lòng chọn ngày phân tích!");
+    if (!api_key) {
+      switchTab('settings');
+      return alert(`Bạn chưa nhập API Key cho ${provider.toUpperCase()}. Vui lòng cài đặt khóa trước!`);
+    }
+
+    const analysts = [];
+    if (document.getElementById("chkMarket").checked) analysts.push("market");
+    if (document.getElementById("chkSentiment").checked) analysts.push("social");
+    if (document.getElementById("chkNews").checked) analysts.push("news");
+    if (document.getElementById("chkFundamentals").checked) analysts.push("fundamentals");
+    if (analysts.length === 0) return alert("Vui lòng chọn ít nhất 1 phòng ban tham gia phân tích!");
+
+    const qm = (userConfig.models?.[provider + "_quick"] || document.getElementById(`model_${provider}_quick`)?.value?.trim() || "")
+      .replace(/2\.5-flash/g, "3.5-flash-lite").replace(/2\.5-pro/g, "3.8-flash");
+    const dm = (userConfig.models?.[provider + "_deep"] || document.getElementById(`model_${provider}_deep`)?.value?.trim() || "")
+      .replace(/2\.5-pro/g, "3.8-flash").replace(/2\.5-flash/g, "3.5-flash-lite");
+
+    const payload = {
+      symbol,
+      date,
+      provider,
+      api_key,
+      analysts,
+      quick_model: qm || (provider === "google" ? "gemini-3.5-flash-lite" : undefined),
+      deep_model: dm || (provider === "google" ? "gemini-3.8-flash" : undefined),
+      base_url: userConfig.models?.custom_base_url || document.getElementById("custom_base_url")?.value?.trim()
+    };
+
+    // Reset live progress styling
+    const pBar = document.getElementById("liveProgressBar");
+    if (pBar) {
+      pBar.style.background = "#1f2421";
+      pBar.style.width = "5%";
+    }
+    const compBox = document.getElementById("liveCompleteBox");
+    if (compBox) compBox.style.display = "none";
+
+    try {
+      const btn = document.getElementById("btnLaunch");
+      btn.disabled = true;
+      btn.innerText = "Đang khởi chạy...";
+
+      const res = await fetch(`${API_BASE}/api/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Không thể khởi chạy");
+
+      spawnSpeechBubble("castle", `Khởi động phân tích ${symbol} (${date})!`, true);
+      showToast("Đã bắt đầu phiên họp AI đa tác tử!");
+    } catch (e) {
+      alert("Lỗi: " + e.message);
+    } finally {
+      const btn = document.getElementById("btnLaunch");
+      btn.disabled = false;
+      btn.innerText = "Bắt Đầu Phân Tích";
+    }
+  }
+
+  function startPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/status`);
+        const st = await res.json();
+        updateUIWithStatus(st);
+      } catch (e) {
+        document.getElementById("globalStatusDot").className = "status-dot busy";
+        document.getElementById("globalStatusText").innerText = "Chưa bật máy chủ .bat";
+      }
+    }, 2000);
+  }
+
+  function updateUIWithStatus(st) {
+    const dot = document.getElementById("globalStatusDot");
+    const text = document.getElementById("globalStatusText");
+    const timer = document.getElementById("liveTimer");
+    const callCount = document.getElementById("liveCallCount");
+    const pBar = document.getElementById("liveProgressBar");
+    const logBox = document.getElementById("streamLogBox");
+
+    if (st.is_running) {
+      dot.className = "status-dot busy";
+      text.innerText = `Đang họp ${st.symbol}...`;
+      
+      const m = Math.floor(st.elapsed_seconds / 60);
+      const s = st.elapsed_seconds % 60;
+      timer.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      callCount.innerText = `Số lượt gọi AI: ${st.ai_calls}`;
+      pBar.style.width = (st.progress_pct || 20) + "%";
+
+      document.getElementById("liveHeaderTitle").innerText = `Đang phân tích ${st.symbol} (${st.date})`;
+      document.getElementById("liveHeaderSubtitle").innerText = `Bước hiện tại: ${st.current_step_vi}`;
+
+      // Update 3D Speech bubble in real-time
+      if (st.progress_pct >= 90) spawnSpeechBubble("castle", st.current_step_vi, true);
+      else if (st.progress_pct >= 80) spawnSpeechBubble("trader", st.current_step_vi, true);
+      else if (st.progress_pct >= 50) spawnSpeechBubble("bull", st.current_step_vi, true);
+      else if (st.progress_pct >= 25) spawnSpeechBubble("tech", st.current_step_vi, true);
+
+      if (!logBox.innerText.includes(st.current_step_vi)) {
+        logBox.innerHTML += `\n> [${new Date().toLocaleTimeString()}] ${st.current_step_vi}`;
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+    } else {
+      dot.className = "status-dot";
+      text.innerText = "Hệ thống sẵn sàng";
+      if (st.result) {
+        pBar.style.width = "100%";
+        if (!currentReportData || currentReportData.symbol !== st.result.symbol) {
+          renderReport(st.result);
+          loadHistory();
+          spawnSpeechBubble("castle", `Đã có quyết định: ${st.result.rating}!`, true);
+        }
+        const compBox = document.getElementById("liveCompleteBox");
+        if (compBox) {
+          compBox.style.display = "block";
+          document.getElementById("liveCompleteTitle").innerText = `Đã phân tích xong ${st.result.symbol} (${st.result.date}) - Xếp hạng: ${st.result.rating}`;
+        }
+      }
+      if (st.error) {
+        pBar.style.background = "#e74c3c";
+        pBar.style.width = "100%";
+        document.getElementById("liveHeaderTitle").innerText = `Đã xảy ra lỗi khi phân tích ${st.symbol || ''}`;
+        document.getElementById("liveHeaderSubtitle").innerText = st.current_step_vi || "Vui lòng xem chi tiết lỗi bên dưới";
+        if (!logBox.innerText.includes("[LỖI]")) {
+          logBox.innerHTML += `\n> [LỖI HỆ THỐNG] ${st.error}`;
+          logBox.scrollTop = logBox.scrollHeight;
+        }
+      }
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function renderReport(r) {
+    currentReportData = r;
+    document.getElementById("reportEmptyState").style.display = "none";
+    document.getElementById("reportContent").style.display = "block";
+
+    const sVi = r.summary_vi || {};
+
+    // 1. Verdict & Action
+    const badge = document.getElementById("reportRatingBadge");
+    const rawRating = String(r.rating || "HOLD").toUpperCase();
+    const ratingDisplay = sVi.rating_vi || rawRating;
+    badge.innerText = ratingDisplay;
+    badge.className = "verdict-pill " + (
+      rawRating.includes("BUY") || ratingDisplay.toLowerCase().includes("mua") ? "verdict-buy" : 
+      rawRating.includes("SELL") || ratingDisplay.toLowerCase().includes("bán") || ratingDisplay.toLowerCase().includes("giảm") ? "verdict-sell" : "verdict-hold"
+    );
+
+    const actionSub = document.getElementById("reportActionSub");
+    if (actionSub) {
+      actionSub.innerText = sVi.trader_action_vi || (r.trader_investment_plan ? r.trader_investment_plan.slice(0, 180) + "..." : "");
+    }
+
+    const meta = document.getElementById("reportMetaText");
+    if (meta) {
+      meta.innerText = `Mã: ${r.symbol} · Ngày: ${r.date} · Nhà cung cấp: ${(r.provider||'AI').toUpperCase()} · Thời gian: ${r.elapsed_minutes || 0} phút · Lượt gọi AI: ${r.ai_calls || '-'}`;
+    }
+
+    // 2. Metrics (4 Cards - Rõ ràng cả 2 phe: Long / Spot và Short Phái sinh)
+    let priceVal = "-", allocVal = "-", slVal = "-", targetVal = "-", changeMindVal = "-";
+    if (Array.isArray(sVi.summary_table)) {
+      sVi.summary_table.forEach(row => {
+        const k = (row.muc || "").toLowerCase();
+        const v = row.con_so || "";
+        if (k.includes("giá lúc chốt") || k.includes("giá chốt") || k.includes("đóng cửa")) priceVal = v;
+        else if (k.includes("tỷ trọng") || k.includes("nắm giữ") || k.includes("tài sản") || k.includes("giữ lại")) allocVal = v;
+        else if (k.includes("cắt lỗ") || k.includes("stop loss") || k.includes("chặn lỗ")) slVal = v;
+        else if (k.includes("rơi tới") || k.includes("chạm tới") || k.includes("mục tiêu") || k.includes("dự phóng")) targetVal = v;
+        else if (k.includes("đổi ý") || k.includes("khi nào") || k.includes("50 ngày")) changeMindVal = v;
+      });
+    }
+
+    document.getElementById("metricPrice").innerText = priceVal;
+    document.getElementById("metricAllocation").innerText = allocVal;
+    if (document.getElementById("metricSL")) document.getElementById("metricSL").innerText = slVal;
+    if (document.getElementById("metricTarget")) document.getElementById("metricTarget").innerText = targetVal;
+
+    const isBearish = rawRating.includes("SELL") || rawRating.includes("UNDER") || ratingDisplay.toLowerCase().includes("bán") || ratingDisplay.toLowerCase().includes("giảm");
+    const isBullish = rawRating.includes("BUY") || rawRating.includes("OVER") || ratingDisplay.toLowerCase().includes("mua") || ratingDisplay.toLowerCase().includes("tăng");
+
+    const elSpot = document.getElementById("metricSpotPlan");
+    const elSpotSub = document.getElementById("metricSpotSub");
+    const elShort = document.getElementById("metricShortPlan");
+    const elShortSub = document.getElementById("metricShortSub");
+    const elAllocSub = document.getElementById("metricAllocSub");
+
+    if (isBearish) {
+      if (elAllocSub) elAllocSub.innerText = "Bán bớt phần rủi ro (Giữ vốn)";
+      if (elSpot) elSpot.innerHTML = `<span style="color:#d97706; font-size:12px; font-weight:600;">Chặn lỗ:</span> <b>${escapeHtml(slVal)}</b>`;
+      if (elSpotSub) elSpotSub.innerText = `Thủng đáy bán nốt · Canh gom lại SMA 200`;
+      
+      const shortSlFormatted = changeMindVal ? extractPriceFromText(changeMindVal) : 'Trên SMA 50';
+      if (elShort) elShort.innerHTML = `<span style="color:#2563eb; font-size:12px; font-weight:600;">TP:</span> <b>${escapeHtml(targetVal)}</b> · <span style="color:#dc2626; font-size:12px; font-weight:600;">SL:</span> <b>${escapeHtml(shortSlFormatted)}</b>`;
+      if (elShortSub) elShortSub.innerText = `Cắt lỗ trên SMA 50 · Chốt lời SMA 200`;
+    } else if (isBullish) {
+      if (elAllocSub) elAllocSub.innerText = "Tích lũy theo xu hướng tăng";
+      if (elSpot) elSpot.innerHTML = `<span style="color:#16a34a; font-size:12px; font-weight:600;">TP:</span> <b>${escapeHtml(targetVal)}</b> · <span style="color:#dc2626; font-size:12px; font-weight:600;">SL:</span> <b>${escapeHtml(slVal)}</b>`;
+      if (elSpotSub) elSpotSub.innerText = `Nắm giữ theo sóng tăng`;
+      if (elShort) elShort.innerHTML = `<span style="color:var(--text-muted);">Đứng ngoài (Không Short)</span>`;
+      if (elShortSub) elShortSub.innerText = `Xu hướng tăng áp đảo`;
+    } else {
+      if (elAllocSub) elAllocSub.innerText = "Duy trì tỷ trọng danh mục chuẩn";
+      if (elSpot) elSpot.innerHTML = `<span style="color:#d97706; font-size:12px; font-weight:600;">Chặn lỗ:</span> <b>${escapeHtml(slVal)}</b>`;
+      if (elSpotSub) elSpotSub.innerText = `Bảo vệ vốn dưới nền hỗ trợ`;
+      if (elShort) elShort.innerHTML = `Chờ bứt phá hai đầu biên`;
+      if (elShortSub) elShortSub.innerText = `Thị trường giằng co đi ngang`;
+    }
+
+    // Load TradingView chart with real candles & AI levels
+    currentChartSymbol = r.symbol || 'BTC-USD';
+    currentReportSL = slVal;
+    currentReportTP = targetVal;
+    currentReportChangeMind = changeMindVal;
+    currentReportRating = rawRating;
+    initLiveTradingViewWidget(currentChartSymbol);
+    loadTradingViewChartData('report', currentChartSymbol, currentReportPeriod, slVal, targetVal, changeMindVal, rawRating);
+
+    // 3. Summary Table (6 Points)
+    const sumTbody = document.getElementById("repSummaryTableBody");
+    if (sumTbody) {
+      if (Array.isArray(sVi.summary_table) && sVi.summary_table.length > 0) {
+        sumTbody.innerHTML = sVi.summary_table.map(row => `
+          <tr>
+            <td style="font-weight:600; color:#1f2421; background:#fafafa;">${escapeHtml(row.muc)}</td>
+            <td style="color:#2b332f; line-height:1.5;">${escapeHtml(row.con_so)}</td>
+          </tr>
+        `).join("");
+      } else {
+        sumTbody.innerHTML = `<tr><td colspan="2" style="color:var(--text-muted);">Đang cập nhật dữ liệu bảng tóm tắt...</td></tr>`;
+      }
+    }
+
+    // 4. Easy Explanation List
+    const easyBox = document.getElementById("repEasyList");
+    if (easyBox) {
+      let introHtml = "";
+      if (sVi.easy_explanation_intro) {
+        introHtml = `<div style="font-size:14px; color:#111827; margin-bottom:8px; line-height:1.5;">${escapeHtml(sVi.easy_explanation_intro)}</div>`;
+      }
+      const items = sVi.easy_explanation_items || sVi.easy_explanation || [];
+      const itemsHtml = items.map((item, idx) => `
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 14px; background:#fbfbfb; border:1px solid rgba(0,0,0,0.06); border-radius:var(--radius-md);">
+          <div style="background:#eaf8ef; color:#2a9d55; font-weight:700; font-size:12px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${idx + 1}</div>
+          <div style="font-size:13.5px; color:#2b332f; line-height:1.6;">${escapeHtml(item.replace(/^[0-9]+\.\s*/, ''))}</div>
+        </div>
+      `).join("");
+      let outroHtml = "";
+      if (sVi.easy_explanation_outro) {
+        outroHtml = `<div style="font-size:13px; color:#4b5563; margin-top:8px; line-height:1.5;">${escapeHtml(sVi.easy_explanation_outro)}</div>`;
+      }
+      easyBox.innerHTML = introHtml + itemsHtml + outroHtml;
+    }
+
+    // 5. Technical Indicators Table & Support/Resistance
+    const techTbody = document.getElementById("repTechTableBody");
+    if (techTbody) {
+      if (Array.isArray(sVi.technical_indicators) && sVi.technical_indicators.length > 0) {
+        techTbody.innerHTML = sVi.technical_indicators.map(t => `
+          <tr>
+            <td style="font-weight:600; color:#1f2421;">${escapeHtml(t.chi_bao)}</td>
+            <td style="font-family:monospace; font-weight:600; color:#2563eb;">${escapeHtml(t.gia_tri)}</td>
+            <td style="color:#2b332f; line-height:1.5;">${escapeHtml(t.ai_doc_la)}</td>
+          </tr>
+        `).join("");
+      } else {
+        techTbody.innerHTML = `<tr><td colspan="3" style="color:var(--text-muted);">Xem chi tiết trong biên bản kỹ thuật gốc bên dưới.</td></tr>`;
+      }
+    }
+    const supRes = document.getElementById("repSupportResistance");
+    if (supRes) {
+      supRes.innerText = sVi.support_resistance || "Vùng hỗ trợ then chốt tại $80,000 và $79,629; Kháng cự tại $81,900 và $84,000.";
+    }
+
+    // 6. Social & News Summaries
+    const soc = document.getElementById("repSocialSummary");
+    if (soc) soc.innerText = sVi.social_summary || "Phòng Tâm lý ghi nhận trạng thái trung tính, đám đông đang theo dõi các mốc đột phá.";
+    const news = document.getElementById("repNewsSummary");
+    if (news) news.innerText = sVi.news_summary || "Phòng Tin tức ghi nhận thị trường chờ đợi dữ liệu vĩ mô và định hướng lãi suất tiếp theo.";
+
+    // 7. Debate: Bull vs Bear & Research Manager
+    const bullEl = document.getElementById("repBullText");
+    if (bullEl) bullEl.innerText = sVi.bull_summary || (r.investment_debate ? r.investment_debate.slice(0, 500) : "Phe Mua đánh giá xu hướng tăng dài hạn vẫn vững.");
+    const bearEl = document.getElementById("repBearText");
+    if (bearEl) bearEl.innerText = sVi.bear_summary || (r.investment_debate ? r.investment_debate.slice(500, 1000) : "Phe Bán cảnh báo động lượng ngắn hạn suy yếu.");
+    const resVer = document.getElementById("repResearchVerdict");
+    if (resVer) resVer.innerText = sVi.research_manager_verdict || "Trưởng phòng Nghiên cứu: Cân bằng hai phe, khuyến nghị giữ nguyên vị thế và kỷ luật cắt lỗ.";
+
+    // 8. Risk Committee (3 Angles)
+    const rAgg = document.getElementById("repRiskAggressive");
+    if (rAgg) rAgg.innerText = sVi.risk_aggressive || "Khuyến nghị gom nhẹ tại biên dưới vùng tích lũy.";
+    const rCon = document.getElementById("repRiskConservative");
+    if (rCon) rCon.innerText = sVi.risk_conservative || "Yêu cầu đặt chặn lỗ nghiêm ngặt dưới dải Bollinger dưới để bảo vệ an toàn vốn.";
+    const rNeu = document.getElementById("repRiskNeutral");
+    if (rNeu) rNeu.innerText = sVi.risk_neutral || "Giữ tỷ trọng baseline cân bằng, chờ đợi tín hiệu nến ngày đóng xác nhận.";
+
+    // 9. Milestones Table
+    const mileTbody = document.getElementById("repMilestonesBody");
+    if (mileTbody) {
+      if (Array.isArray(sVi.milestones) && sVi.milestones.length > 0) {
+        mileTbody.innerHTML = sVi.milestones.map(m => `
+          <tr>
+            <td style="font-weight:600; color:#1f2421; background:#fafafa;">${escapeHtml(m.neu_gia)}</td>
+            <td style="color:#2b332f; line-height:1.5;">${escapeHtml(m.ke_hoach)}</td>
+          </tr>
+        `).join("");
+      } else {
+        mileTbody.innerHTML = `<tr><td colspan="2" style="color:var(--text-muted);">Đang cập nhật các mốc theo dõi...</td></tr>`;
+      }
+    }
+
+    // 10. Notes
+    const notesBox = document.getElementById("repNotesList");
+    if (notesBox) {
+      if (Array.isArray(sVi.notes) && sVi.notes.length > 0) {
+        notesBox.innerHTML = sVi.notes.map(note => `
+          <div style="font-size:13px; color:#4b5563; line-height:1.6; display:flex; gap:8px;">
+            <span style="color:#2a9d55; font-weight:700;">✓</span>
+            <span>${escapeHtml(note)}</span>
+          </div>
+        `).join("");
+      } else {
+        notesBox.innerHTML = `<div style="font-size:13px; color:#6b7280;">Báo cáo tổng hợp tự động từ hệ thống AI Trading Agents. Không phải lời khuyên tài chính cá nhân.</div>`;
+      }
+    }
+
+    // 11. Collapsible Raw English Reports
+    const elFinal = document.getElementById("repFinalDecision");
+    if (elFinal) elFinal.innerText = r.final_trade_decision || "Không có dữ liệu.";
+    const elTrader = document.getElementById("repTraderPlan");
+    if (elTrader) elTrader.innerText = r.trader_investment_plan || "Không có dữ liệu.";
+    const elMarket = document.getElementById("repMarketReport");
+    if (elMarket) elMarket.innerText = r.market_report || "Không có dữ liệu.";
+    const elSent = document.getElementById("repSentimentReport");
+    if (elSent) elSent.innerText = r.sentiment_report || "Không có dữ liệu.";
+    const elNews = document.getElementById("repNewsReport");
+    if (elNews) elNews.innerText = r.news_report || "Không có dữ liệu.";
+    const elRisk = document.getElementById("repRiskDebate");
+    if (elRisk) elRisk.innerText = r.risk_debate || "Không có dữ liệu.";
+  }
+
+  function copyReportMarkdown() {
+    if (!currentReportData || !currentReportData.markdown) return alert("Không có nội dung!");
+    navigator.clipboard.writeText(currentReportData.markdown).then(() => {
+      showToast("Đã sao chép Markdown vào Clipboard");
+    });
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${API_BASE}/api/history`);
+      const data = await res.json();
+      const list = data.history || [];
+      const tbody = document.getElementById("historyTableBody");
+      
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Chưa có phiên phân tích nào.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => {
+        const isError = item.rating === 'LỖI' || !item.has_report;
+        const ratingColor = item.rating?.includes('BUY') ? '#2a9d55' : 
+                            (item.rating?.includes('SELL') ? '#d90429' : 
+                            (item.rating === 'LỖI' ? '#e74c3c' : '#2563eb'));
+        
+        let actions = '';
+        if (isError) {
+          actions = `<button class="btn-main btn-sub" style="color:#e74c3c; border-color:#fca5a5; font-size:12px; padding:5px 12px;" onclick="showErrorDetail('${item.ma}', '${item.ngay}')">Chi tiết lỗi</button>`;
+        } else {
+          actions = `
+            <button class="btn-main btn-sub" style="font-size:12px; padding:5px 12px; font-weight:600;" onclick="openPastReport('${item.ma}', '${item.ngay}')">Mở xem Web</button>
+            <button class="btn-main btn-primary" style="margin-left:6px; font-size:12px; padding:5px 12px;" onclick="downloadPdf('${item.ma}', '${item.ngay}')">Tải PDF</button>
+            <button class="btn-main btn-sub" style="margin-left:4px; font-size:12px; padding:5px 10px;" onclick="openPdfOnSystem('${item.ma}', '${item.ngay}')" title="Mở trực tiếp trên máy tính">Mở PDF</button>
+          `;
+        }
+
+        return `
+          <tr>
+            <td><b>${item.ma}</b></td>
+            <td>${item.ngay}</td>
+            <td><span style="font-weight:700; color:${ratingColor}">${item.rating || 'ĐÃ LƯU'}</span></td>
+            <td>${item.phut ? item.phut + ' phút' : '-'}</td>
+            <td>${item.so_luot_ai || '-'}</td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join("");
+    } catch (e) {
+      console.error("History load error", e);
+    }
+  }
+
+  async function openPastReport(symbol, date) {
+    try {
+      showToast(`Đang mở báo cáo ${symbol} (${date})...`);
+      const res = await fetch(`${API_BASE}/api/report?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      renderReport(data);
+      switchTab('report');
+    } catch (e) {
+      alert("Lỗi khi mở báo cáo: " + e.message);
+    }
+  }
+
+  function downloadPdf(symbol, date) {
+    if (!symbol || !date) return alert("Thiếu thông tin mã hoặc ngày để tải PDF!");
+    showToast(`Đang tải file PDF tóm tắt cho ${symbol}...`);
+    const url = `${API_BASE}/api/download_pdf?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Tom_tat_bien_ban_${symbol}_${date}.pdf`;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch(_) {}
+    }, 1000);
+  }
+
+  async function openPdfOnSystem(symbol, date) {
+    if (!symbol || !date) return alert("Thiếu thông tin mã hoặc ngày để mở PDF!");
+    try {
+      showToast(`Đang mở file PDF trên máy tính...`);
+      const res = await fetch(`${API_BASE}/api/open_pdf?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Không thể mở file");
+      showToast(data.message || "Đã mở file PDF trên máy tính!");
+    } catch (e) {
+      console.warn("openPdfOnSystem fallback:", e);
+      const pdfUrl = `${API_BASE}/api/download_pdf?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}&view=inline`;
+      window.open(pdfUrl, "_blank");
+      showToast("Đang mở PDF trên tab trình duyệt...");
+    }
+  }
+
+  function previewPdfInTab(symbol, date) {
+    symbol = symbol || (currentReportData && currentReportData.symbol);
+    date = date || (currentReportData && currentReportData.date);
+    if (!symbol || !date) return alert("Chưa có báo cáo nào được chọn!");
+    const url = `${API_BASE}/api/download_pdf?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}&view=inline`;
+    window.open(url, "_blank");
+  }
+
+  function downloadCurrentPdf() {
+    if (!currentReportData) return alert("Chưa có báo cáo nào được chọn!");
+    downloadPdf(currentReportData.symbol, currentReportData.date);
+  }
+
+  function openCurrentPdfSystem() {
+    if (!currentReportData) return alert("Chưa có báo cáo nào được chọn!");
+    openPdfOnSystem(currentReportData.symbol, currentReportData.date);
+  }
+
+  function showErrorDetail(symbol, date) {
+    alert(`Phiên phân tích mã ${symbol} ngày ${date} bị lỗi và chưa tạo biên bản hoàn chỉnh.\n\nNguyên nhân: Phiên chạy trước đó bị gián đoạn do mô hình cũ (Google 404). Hệ thống hiện đã được cập nhật hoàn chỉnh sang Gemini 3.5 & 3.8.\n\n👉 Bạn hãy vào tab 'Bảng Điều Khiển' hoặc 'Văn Phòng 3D' bấm 'Bắt Đầu Phân Tích' để hệ thống chạy mới và tự động xuất file PDF hoàn chỉnh!`);
+  }
+
+  // ================= TRADINGVIEW LIGHTWEIGHT CHARTS LOGIC =================
+  let reportChartObj = null;
+  let projChartObj = null;
+
+  let currentChartSymbol = 'BTC-USD';
+  let currentReportPeriod = '3mo';
+  let currentProjectorPeriod = '3mo';
+  let currentReportSL = null;
+  let currentReportTP = null;
+  let currentReportChangeMind = null;
+  let currentReportRating = null;
+
+  function createLightweightChart(container) {
+    if (typeof LightweightCharts === 'undefined') {
+      console.warn("Thư viện LightweightCharts chưa được nạp.");
+      return null;
+    }
+    const chart = LightweightCharts.createChart(container, {
+      width: container.clientWidth || 800,
+      height: container.clientHeight || 360,
+      layout: {
+        background: { color: '#ffffff' },
+        textColor: '#374151',
+        fontSize: 12,
+        fontFamily: 'Plus Jakarta Sans, sans-serif'
+      },
+      grid: {
+        vertLines: { color: 'rgba(0, 0, 0, 0.04)' },
+        horzLines: { color: 'rgba(0, 0, 0, 0.04)' },
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+      },
+      rightPriceScale: {
+        borderColor: 'rgba(0, 0, 0, 0.08)',
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.2,
+        },
+      },
+      timeScale: {
+        borderColor: 'rgba(0, 0, 0, 0.08)',
+        timeVisible: true,
+      },
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: '#26a69a',
+      downColor: '#ef5350',
+      borderVisible: false,
+      wickUpColor: '#26a69a',
+      wickDownColor: '#ef5350',
+    });
+
+    const volumeSeries = chart.addHistogramSeries({
+      priceFormat: { type: 'volume' },
+      priceScaleId: '',
+      scaleMargins: {
+        top: 0.82,
+        bottom: 0,
+      },
+    });
+
+    const sma200Series = chart.addLineSeries({
+      color: '#f59e0b',
+      lineWidth: 2,
+      title: 'SMA 200',
+    });
+
+    const sma50Series = chart.addLineSeries({
+      color: '#2563eb',
+      lineWidth: 2,
+      title: 'SMA 50',
+    });
+
+    const ema10Series = chart.addLineSeries({
+      color: '#9333ea',
+      lineWidth: 1.5,
+      title: 'EMA 10',
+    });
+
+    const ro = new ResizeObserver(entries => {
+      if (entries.length && entries[0].contentRect.width > 0) {
+        chart.applyOptions({
+          width: entries[0].contentRect.width,
+          height: entries[0].contentRect.height
+        });
+      }
+    });
+    ro.observe(container);
+
+    return {
+      chart,
+      candleSeries,
+      volumeSeries,
+      sma200Series,
+      sma50Series,
+      ema10Series,
+      shortSlLine: null,
+      longStopLine: null,
+      tpLine: null,
+      slPriceLine: null,
+      tpPriceLine: null
+    };
+  }
+
+  function parseNumericPrice(str) {
+    if (!str) return null;
+    // Find all number patterns (including comma/dot separators)
+    const matches = String(str).match(/(?:[0-9]{1,3}(?:[.,][0-9]{3})+(?:[.,][0-9]+)?|[0-9]{4,}(?:[.,][0-9]+)?|[0-9]+)/g);
+    if (!matches) return null;
+
+    let candidates = [];
+    for (let m of matches) {
+      let clean = m;
+      let nStr = clean;
+      if (clean.includes('.') && clean.includes(',')) {
+        if (clean.indexOf('.') < clean.indexOf(',')) {
+          nStr = clean.replace(/\./g, '').replace(',', '.');
+        } else {
+          nStr = clean.replace(/,/g, '');
+        }
+      } else if (clean.includes('.')) {
+        const parts = clean.split('.');
+        if (parts.length > 1 && parts[1].length === 3) {
+          nStr = clean.replace(/\./g, '');
+        }
+      } else if (clean.includes(',')) {
+        const parts = clean.split(',');
+        if (parts.length > 1 && parts[1].length === 3) {
+          nStr = clean.replace(/,/g, '');
+        } else if (parts.length === 2 && parts[1].length <= 2) {
+          nStr = clean.replace(',', '.');
+        }
+      }
+      const val = parseFloat(nStr);
+      if (!isNaN(val) && val > 0) {
+        candidates.push(val);
+      }
+    }
+
+    // Filter out common indicator labels like 10, 50, 200 days or dates
+    const realPrice = candidates.find(c => c > 500);
+    if (realPrice) return realPrice;
+    return candidates.length ? candidates[0] : null;
+  }
+
+  function extractPriceFromText(str) {
+    if (!str) return '';
+    const val = parseNumericPrice(str);
+    if (val && val > 500) {
+      return `$${val.toLocaleString('en-US', {maximumFractionDigits: 2})}`;
+    }
+    return str;
+  }
+
+  let activeChartMode = 'live'; // 'live' or 'plan'
+
+  function switchChartMode(mode) {
+    activeChartMode = mode;
+    const btnLive = document.getElementById('btnModeTvLive');
+    const btnPlan = document.getElementById('btnModePlan');
+    const boxLive = document.getElementById('tradingviewLiveBox');
+    const boxPlan = document.getElementById('tradingviewChartBox');
+    const periodGroup = document.getElementById('chartPeriodButtonGroup');
+
+    if (mode === 'live') {
+      if (btnLive) { 
+        btnLive.style.background = '#1f2421'; 
+        btnLive.style.color = '#fff';
+        btnLive.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+      }
+      if (btnPlan) { 
+        btnPlan.style.background = 'transparent'; 
+        btnPlan.style.color = 'var(--text-secondary)'; 
+        btnPlan.style.boxShadow = 'none';
+      }
+      if (boxLive) boxLive.style.display = 'block';
+      if (boxPlan) boxPlan.style.display = 'none';
+      if (periodGroup) periodGroup.style.display = 'none';
+      initLiveTradingViewWidget(currentChartSymbol);
+    } else {
+      if (btnLive) { 
+        btnLive.style.background = 'transparent'; 
+        btnLive.style.color = 'var(--text-secondary)'; 
+        btnLive.style.boxShadow = 'none';
+      }
+      if (btnPlan) { 
+        btnPlan.style.background = '#1f2421'; 
+        btnPlan.style.color = '#fff'; 
+        btnPlan.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+      }
+      if (boxLive) boxLive.style.display = 'none';
+      if (boxPlan) boxPlan.style.display = 'block';
+      if (periodGroup) periodGroup.style.display = 'flex';
+      loadTradingViewChartData('report', currentChartSymbol, currentReportPeriod, currentReportSL, currentReportTP, currentReportChangeMind, currentReportRating);
+    }
+  }
+
+  function initLiveTradingViewWidget(symbol) {
+    symbol = symbol || currentChartSymbol || 'BTC-USD';
+    let tvSymbol = "BINANCE:BTCUSDT";
+    const sUpper = String(symbol).toUpperCase();
+    if (sUpper.includes("BTC")) tvSymbol = "BINANCE:BTCUSDT";
+    else if (sUpper.includes("ETH")) tvSymbol = "BINANCE:ETHUSDT";
+    else if (sUpper.includes("GC=") || sUpper.includes("XAU") || sUpper.includes("GOLD")) tvSymbol = "OANDA:XAUUSD";
+    else if (sUpper.includes("NVDA")) tvSymbol = "NASDAQ:NVDA";
+    else tvSymbol = sUpper.replace("-", "");
+
+    const container = document.getElementById("tv_chart_container");
+    if (!container) return;
+    container.innerHTML = "";
+
+    try {
+      if (typeof TradingView !== "undefined") {
+        new TradingView.widget({
+          "autosize": true,
+          "symbol": tvSymbol,
+          "interval": "D",
+          "timezone": "Asia/Ho_Chi_Minh",
+          "theme": "light",
+          "style": "1",
+          "locale": "vi_VN",
+          "toolbar_bg": "#f8faf9",
+          "enable_publishing": false,
+          "allow_symbol_change": true,
+          "withdateranges": true,
+          "hide_side_toolbar": false,
+          "details": true,
+          "container_id": "tv_chart_container",
+          "studies": [
+            "MASimple@tv-basicstudies",
+            "MAExp@tv-basicstudies"
+          ]
+        });
+      } else {
+        container.innerHTML = `
+          <iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=light&style=1&timezone=Asia%2FHo_Chi_Minh&locale=vi_VN&studies=MASimple%40tv-basicstudies%1FMAExp%40tv-basicstudies" 
+                  style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
+        `;
+      }
+    } catch (e) {
+      console.warn("TradingView widget init fallback:", e);
+      container.innerHTML = `
+        <iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=light&style=1&timezone=Asia%2FHo_Chi_Minh&locale=vi_VN" 
+                style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
+      `;
+    }
+  }
+
+  async function loadTradingViewChartData(target, symbol, period, slVal, tpVal, changeMindVal, ratingStr) {
+    symbol = symbol || currentChartSymbol || 'BTC-USD';
+    period = period || '3mo';
+    slVal = slVal || currentReportSL;
+    tpVal = tpVal || currentReportTP;
+    changeMindVal = changeMindVal || currentReportChangeMind;
+    ratingStr = ratingStr || currentReportRating || '';
+    
+    const isReport = target === 'report';
+    const containerId = isReport ? 'tradingviewChartBox' : 'projectorChartContainer';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (isReport) {
+      const badge = document.getElementById('chartSymbolBadge');
+      if (badge) badge.innerText = symbol;
+      const loader = document.getElementById('chartLoadingOverlay');
+      if (loader) loader.style.display = 'flex';
+    } else {
+      const badge = document.getElementById('projSymbolBadge');
+      if (badge) badge.innerText = symbol;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/candles?symbol=${encodeURIComponent(symbol)}&period=${period}&interval=1d`);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "Không có dữ liệu nến");
+
+      let chartInst = isReport ? reportChartObj : projChartObj;
+      if (!chartInst) {
+        chartInst = createLightweightChart(container);
+        if (isReport) reportChartObj = chartInst;
+        else projChartObj = chartInst;
+      }
+
+      if (!chartInst) return;
+
+      chartInst.candleSeries.setData(data.candles || []);
+      chartInst.volumeSeries.setData(data.volumes || []);
+      chartInst.sma200Series.setData(data.sma200 || []);
+      chartInst.sma50Series.setData(data.sma50 || []);
+      chartInst.ema10Series.setData(data.ema10 || []);
+
+      const lastSma200 = data.sma200 && data.sma200.length ? data.sma200[data.sma200.length - 1].value : '-';
+      const lastSma50 = data.sma50 && data.sma50.length ? data.sma50[data.sma50.length - 1].value : '-';
+      const lastEma10 = data.ema10 && data.ema10.length ? data.ema10[data.ema10.length - 1].value : '-';
+
+      const fmt = n => typeof n === 'number' ? `$${n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}` : n;
+
+      if (isReport) {
+        document.getElementById('legSma200').innerText = fmt(lastSma200);
+        document.getElementById('legSma50').innerText = fmt(lastSma50);
+        document.getElementById('legEma10').innerText = fmt(lastEma10);
+      } else {
+        document.getElementById('projSma200').innerText = fmt(lastSma200);
+        document.getElementById('projSma50').innerText = fmt(lastSma50);
+        document.getElementById('projEma10').innerText = fmt(lastEma10);
+        const pLive = document.getElementById('projLivePrice');
+        if (pLive) pLive.innerText = data.current_price ? `$${data.current_price.toLocaleString()}` : '';
+      }
+
+      // Remove previous lines cleanly
+      ['shortSlLine', 'longStopLine', 'tpLine', 'slPriceLine', 'tpPriceLine'].forEach(key => {
+        if (chartInst[key]) {
+          try { chartInst.candleSeries.removePriceLine(chartInst[key]); } catch(_) {}
+          chartInst[key] = null;
+        }
+      });
+
+      const spotPrice = data.current_price || (data.candles && data.candles.length ? data.candles[data.candles.length - 1].close : null);
+      const numSma200 = typeof lastSma200 === 'number' ? lastSma200 : parseNumericPrice(lastSma200);
+      const numSma50 = typeof lastSma50 === 'number' ? lastSma50 : parseNumericPrice(lastSma50);
+
+      const parsedSL = parseNumericPrice(slVal);
+      const parsedTP = parseNumericPrice(tpVal);
+      const parsedChangeMind = parseNumericPrice(changeMindVal) || numSma50;
+
+      const isBearish = (ratingStr && (ratingStr.includes("SELL") || ratingStr.includes("UNDER") || ratingStr.includes("GIẢM") || ratingStr.includes("BÁN"))) ||
+                        (spotPrice && parsedTP && parsedTP < spotPrice);
+
+      if (isBearish) {
+        // --- 1. SHORT SELL PERSPECTIVE ---
+        // Short SL must be above entry (around SMA 50 or change mind level)
+        const shortSlPrice = parsedChangeMind || (numSma50 ? numSma50 * 1.002 : (spotPrice ? spotPrice * 1.04 : null));
+        if (shortSlPrice) {
+          chartInst.shortSlLine = chartInst.candleSeries.createPriceLine({
+            price: shortSlPrice,
+            color: '#dc2626',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'SL LỆNH BÁN (SHORT)',
+          });
+          const txt = `$${shortSlPrice.toLocaleString('en-US', {maximumFractionDigits:2})}`;
+          if (isReport && document.getElementById('legShortSL')) document.getElementById('legShortSL').innerText = txt;
+          if (!isReport && document.getElementById('projShortSL')) document.getElementById('projShortSL').innerText = txt;
+        }
+
+        // --- 2. SPOT / LONG CAPITAL PRESERVATION ---
+        // Stop loss for spot is below entry (under recent swing low)
+        const longStopPrice = parsedSL || (spotPrice ? spotPrice * 0.96 : null);
+        if (longStopPrice) {
+          chartInst.longStopLine = chartInst.candleSeries.createPriceLine({
+            price: longStopPrice,
+            color: '#f59e0b',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'CHẶN LỖ SPOT (LONG)',
+          });
+          const txt = `$${longStopPrice.toLocaleString('en-US', {maximumFractionDigits:2})}`;
+          if (isReport && document.getElementById('legLongStop')) document.getElementById('legLongStop').innerText = txt;
+          if (!isReport && document.getElementById('projLongStop')) document.getElementById('projLongStop').innerText = txt;
+        }
+
+        // --- 3. DOWNSIDE TARGET / SMA 200 DIP RE-BUY / SHORT TAKE PROFIT ---
+        const tpPrice = parsedTP || numSma200 || (spotPrice ? spotPrice * 0.92 : null);
+        if (tpPrice) {
+          chartInst.tpLine = chartInst.candleSeries.createPriceLine({
+            price: tpPrice,
+            color: '#16a34a',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'TP BÁN / VÙNG GOM SMA 200',
+          });
+          const txt = `$${tpPrice.toLocaleString('en-US', {maximumFractionDigits:2})}`;
+          if (isReport && document.getElementById('legTP')) document.getElementById('legTP').innerText = txt;
+          if (!isReport && document.getElementById('projTP')) document.getElementById('projTP').innerText = txt;
+        }
+      } else {
+        // --- BULLISH OR NEUTRAL MARKET ---
+        if (parsedSL) {
+          chartInst.longStopLine = chartInst.candleSeries.createPriceLine({
+            price: parsedSL,
+            color: '#dc2626',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'CẮT LỖ (SL LONG)',
+          });
+          const txt = `$${parsedSL.toLocaleString('en-US', {maximumFractionDigits:2})}`;
+          if (isReport && document.getElementById('legLongStop')) document.getElementById('legLongStop').innerText = txt;
+          if (!isReport && document.getElementById('projLongStop')) document.getElementById('projLongStop').innerText = txt;
+        }
+        if (parsedTP) {
+          chartInst.tpLine = chartInst.candleSeries.createPriceLine({
+            price: parsedTP,
+            color: '#16a34a',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: 'MỤC TIÊU (TP LONG)',
+          });
+          const txt = `$${parsedTP.toLocaleString('en-US', {maximumFractionDigits:2})}`;
+          if (isReport && document.getElementById('legTP')) document.getElementById('legTP').innerText = txt;
+          if (!isReport && document.getElementById('projTP')) document.getElementById('projTP').innerText = txt;
+        }
+        if (isReport && document.getElementById('legShortSL')) document.getElementById('legShortSL').innerText = 'Đứng ngoài';
+        if (!isReport && document.getElementById('projShortSL')) document.getElementById('projShortSL').innerText = 'Đứng ngoài';
+      }
+
+      chartInst.chart.timeScale().fitContent();
+
+      if (isReport) {
+        const loader = document.getElementById('chartLoadingOverlay');
+        if (loader) loader.style.display = 'none';
+      }
+    } catch (e) {
+      console.warn("Chart data load error:", e);
+      if (isReport) {
+        const loader = document.getElementById('chartLoadingOverlay');
+        if (loader) loader.innerText = "Không thể tải nến: " + e.message;
+      }
+    }
+  }
+
+  function setChartPeriod(period, btn) {
+    currentReportPeriod = period;
+    document.querySelectorAll('.chart-period-btn').forEach(b => {
+      b.style.background = '';
+      b.style.color = '';
+    });
+    if (btn) {
+      btn.style.background = '#1f2421';
+      btn.style.color = '#fff';
+    }
+    loadTradingViewChartData('report', currentChartSymbol, currentReportPeriod, currentReportSL, currentReportTP, currentReportChangeMind, currentReportRating);
+  }
+
+  function setProjectorPeriod(period, btn) {
+    currentProjectorPeriod = period;
+    document.querySelectorAll('.proj-period-btn').forEach(b => {
+      b.style.background = '';
+      b.style.color = '';
+    });
+    if (btn) {
+      btn.style.background = '#1f2421';
+      btn.style.color = '#fff';
+    }
+    loadTradingViewChartData('projector', currentChartSymbol, currentProjectorPeriod, currentReportSL, currentReportTP, currentReportChangeMind, currentReportRating);
+  }
+
+  function toggleOfficeProjector() {
+    const overlay = document.getElementById('officeProjectorOverlay');
+    if (!overlay) return;
+    const isHidden = (overlay.style.display === 'none' || !overlay.style.display);
+    if (isHidden) {
+      overlay.style.display = 'flex';
+      loadTradingViewChartData('projector', currentChartSymbol, currentProjectorPeriod, currentReportSL, currentReportTP, currentReportChangeMind, currentReportRating);
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
+
+  // ================= TELEGRAM BOT INTEGRATION =================
+  async function testTelegramBot() {
+    const token = document.getElementById("cfgTelegramToken").value.trim();
+    const chatId = document.getElementById("cfgTelegramChatId").value.trim();
+    if (!token || !chatId) {
+      return alert("Vui lòng nhập cả Telegram Bot Token và Chat ID!");
+    }
+    showToast("Đang kiểm tra kết nối Telegram...");
+    try {
+      const res = await fetch(`${API_BASE}/api/test_telegram`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bot_token: token, chat_id: chatId })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message || "Lỗi kiểm tra Telegram");
+      alert(data.message);
+    } catch (e) {
+      alert("Lỗi kết nối Telegram: " + e.message);
+    }
+  }
+
+  async function sendCurrentReportTelegram() {
+    if (!currentReportData) return alert("Chưa có báo cáo nào được mở!");
+    showToast(`Đang gửi báo cáo ${currentReportData.symbol} qua Telegram...`);
+    try {
+      const res = await fetch(`${API_BASE}/api/send_telegram`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol: currentReportData.symbol,
+          date: currentReportData.date
+        })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message || "Lỗi gửi Telegram");
+      showToast(data.message);
+      alert("✅ " + data.message);
+    } catch (e) {
+      alert("Lỗi gửi Telegram: " + e.message);
+    }
+  }
+</script>
+
+</body>
+</html>

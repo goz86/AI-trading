@@ -221,3 +221,18 @@ __marimo__/
 # Enterprise env file (secrets) and generated run reports
 .env.enterprise
 reports/
+
+# Local secrets & API keys (Security & Privacy Protection)
+khoa-gemini.txt
+config_user.json
+.env
+.env.*
+!.env.example
+!.env.enterprise.example
+
+# Local run outputs & caches
+Kết quả/
+cache/
+*.lock
+*.temp.html
+_temp_*
