@@ -50,11 +50,11 @@ _CRYPTO_BASES = frozenset(
 # adding rows — no call site changes required.
 _ALIASES = {
     # Precious metals (spot names -> COMEX/NYMEX futures)
-    "XAUUSD": "GC=F", "XAU": "GC=F", "GOLD": "GC=F",
-    "XAGUSD": "SI=F", "XAG": "SI=F", "SILVER": "SI=F",
+    "XAUUSD": "GC=F", "XAU": "GC=F", "GOLD": "GC=F", "XAU-USD": "GC=F", "XAU/USD": "GC=F", "GC_F": "GC=F",
+    "XAGUSD": "SI=F", "XAG": "SI=F", "SILVER": "SI=F", "XAG-USD": "SI=F", "XAG/USD": "SI=F", "SI_F": "SI=F",
     "XPTUSD": "PL=F", "XPDUSD": "PA=F",
     # Energy
-    "WTICOUSD": "CL=F", "USOIL": "CL=F", "WTI": "CL=F",
+    "WTICOUSD": "CL=F", "USOIL": "CL=F", "WTI": "CL=F", "CL_F": "CL=F", "CL-USD": "CL=F",
     "BCOUSD": "BZ=F", "UKOIL": "BZ=F", "BRENT": "BZ=F",
     "NATGAS": "NG=F", "XNGUSD": "NG=F",
     "COPPER": "HG=F", "XCUUSD": "HG=F",

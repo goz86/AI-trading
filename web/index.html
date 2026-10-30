@@ -633,7 +633,7 @@
         <div class="command-title">Khởi Động Lệnh Họp Đa Tác Tử</div>
         <div class="command-presets">
           <span class="preset-chip" onclick="applyPreset('BTC-USD', 'crypto')">BTC/USD (Hôm nay)</span>
-          <span class="preset-chip" onclick="applyPreset('GC=F', 'commodity')">XAU/USD (Vàng thế giới)</span>
+          <span class="preset-chip" onclick="applyPreset('XAU-USD', 'commodity')">XAU/USD (Vàng thế giới)</span>
           <span class="preset-chip" onclick="applyPreset('NVDA', 'stock')">NVDA (Báo cáo Q3)</span>
           <span class="preset-chip" onclick="applyPreset('ETH-USD', 'crypto')">ETH/USD (Swing)</span>
         </div>
@@ -1402,8 +1402,8 @@
     let type = "crypto";
 
     // 1. Nhận diện các từ khóa tiếng Việt / tên tài sản phổ biến
-    if (p.includes("vàng") || p.includes("gold") || p.includes("xau") || p.includes("gc=f")) {
-      sym = "GC=F"; type = "commodity";
+    if (p.includes("vàng") || p.includes("gold") || p.includes("xau") || p.includes("gc=f") || p.includes("gc_f")) {
+      sym = "XAU-USD"; type = "commodity";
     } else if (p.includes("dầu") || p.includes("oil") || p.includes("crude") || p.includes("cl=f")) {
       sym = "CL=F"; type = "commodity";
     } else if (p.includes("bạc") || p.includes("silver") || p.includes("si=f")) {
@@ -3936,15 +3936,75 @@
     }
   }
 
+  function formatDisplaySymbol(sym) {
+    if (!sym) return "BTC/USD";
+    const s = String(sym).toUpperCase().trim();
+    if (s.includes("XAU") || s.includes("GOLD") || s.includes("GC=") || s.includes("GC_F") || s === "GC_F") return "XAU/USD";
+    if (s.includes("XAG") || s.includes("SILVER") || s.includes("SI=") || s.includes("SI_F")) return "XAG/USD";
+    if (s.includes("CL=") || s.includes("CL_F") || s.includes("USOIL") || s.includes("CRUDE")) return "USOIL";
+    if (s.endsWith("-USD")) return s.replace("-USD", "/USD");
+    if (s.endsWith("-USDT")) return s.replace("-USDT", "/USDT");
+    return s;
+  }
+
+  function toTradingViewSymbol(sym) {
+    if (!sym) return "BINANCE:BTCUSDT";
+    const s = String(sym).toUpperCase().trim().replace(/[\/=]/g, "-");
+
+    // Commodities & Precious Metals
+    if (s.includes("XAU") || s.includes("GOLD") || s.includes("GC-F") || s.includes("GC_F") || s.startsWith("GC")) {
+      return "OANDA:XAUUSD";
+    }
+    if (s.includes("XAG") || s.includes("SILVER") || s.includes("SI-F") || s.includes("SI_F") || s.startsWith("SI")) {
+      return "OANDA:XAGUSD";
+    }
+    if (s.includes("CL-F") || s.includes("CL_F") || s.includes("USOIL") || s.includes("WTI") || s.includes("CRUDE")) {
+      return "TVC:USOIL";
+    }
+    if (s.includes("BRENT") || s.includes("UKOIL")) return "TVC:UKOIL";
+    if (s.includes("NATGAS") || s.includes("NG-F")) return "TVC:NATGAS";
+    if (s.includes("COPPER") || s.includes("HG-F")) return "TVC:COPPER";
+
+    // Known Crypto Pairs -> Binance USDT
+    const cryptos = [
+      "BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "DOGE", "AVAX", "SUI", 
+      "NEAR", "LINK", "PEPE", "SHIB", "DOT", "LTC", "POL", "MATIC", "APT", 
+      "ATOM", "UNI", "ARB", "OP", "TIA", "FTM", "INJ", "TRX", "TON"
+    ];
+    for (const c of cryptos) {
+      if (s === c || s === `${c}-USD` || s === `${c}-USDT` || s.startsWith(`${c}-`)) {
+        return `BINANCE:${c}USDT`;
+      }
+    }
+
+    // Known Equities / US Stocks -> NASDAQ
+    const stocks = [
+      "NVDA", "TSLA", "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "META", 
+      "NFLX", "AMD", "INTC", "COIN", "MSTR", "PLTR", "BABA", "SPY", "QQQ"
+    ];
+    for (const st of stocks) {
+      if (s === st || s.startsWith(st)) {
+        return `NASDAQ:${st}`;
+      }
+    }
+
+    // Generic crypto with -USD
+    if (s.endsWith("-USD") || s.endsWith("-USDT")) {
+      const base = s.replace(/-USD(T)?$/, "");
+      return `BINANCE:${base}USDT`;
+    }
+
+    // Fallback: clean letters only
+    return s.replace(/[^A-Z0-9]/g, "");
+  }
+
   function initLiveTradingViewWidget(symbol) {
     symbol = symbol || currentChartSymbol || 'BTC-USD';
-    let tvSymbol = "BINANCE:BTCUSDT";
-    const sUpper = String(symbol).toUpperCase();
-    if (sUpper.includes("BTC")) tvSymbol = "BINANCE:BTCUSDT";
-    else if (sUpper.includes("ETH")) tvSymbol = "BINANCE:ETHUSDT";
-    else if (sUpper.includes("GC=") || sUpper.includes("XAU") || sUpper.includes("GOLD")) tvSymbol = "OANDA:XAUUSD";
-    else if (sUpper.includes("NVDA")) tvSymbol = "NASDAQ:NVDA";
-    else tvSymbol = sUpper.replace("-", "");
+    const tvSymbol = toTradingViewSymbol(symbol);
+    const dispSymbol = formatDisplaySymbol(symbol);
+
+    const badge = document.getElementById('chartSymbolBadge');
+    if (badge) badge.innerText = dispSymbol;
 
     const container = document.getElementById("tv_chart_container");
     if (!container) return;
@@ -3957,10 +4017,10 @@
           "symbol": tvSymbol,
           "interval": "D",
           "timezone": "Asia/Ho_Chi_Minh",
-          "theme": "light",
+          "theme": isDarkMode ? "dark" : "light",
           "style": "1",
           "locale": "vi_VN",
-          "toolbar_bg": "#f8faf9",
+          "toolbar_bg": isDarkMode ? "#111827" : "#f8faf9",
           "enable_publishing": false,
           "allow_symbol_change": true,
           "withdateranges": true,
@@ -3974,14 +4034,14 @@
         });
       } else {
         container.innerHTML = `
-          <iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=light&style=1&timezone=Asia%2FHo_Chi_Minh&locale=vi_VN&studies=MASimple%40tv-basicstudies%1FMAExp%40tv-basicstudies" 
+          <iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=${isDarkMode ? 'dark' : 'light'}&style=1&timezone=Asia%2FHo_Chi_Minh&locale=vi_VN&studies=MASimple%40tv-basicstudies%1FMAExp%40tv-basicstudies" 
                   style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
         `;
       }
     } catch (e) {
       console.warn("TradingView widget init fallback:", e);
       container.innerHTML = `
-        <iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&interval=D&theme=light&style=1&timezone=Asia%2FHo_Chi_Minh&locale=vi_VN" 
+        <iframe src="https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(tvSymbol)}&theme=${isDarkMode ? 'dark' : 'light'}&style=1&timezone=Asia%2FHo_Chi_Minh&locale=vi_VN" 
                 style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
       `;
     }
@@ -4002,12 +4062,12 @@
 
     if (isReport) {
       const badge = document.getElementById('chartSymbolBadge');
-      if (badge) badge.innerText = symbol;
+      if (badge) badge.innerText = formatDisplaySymbol(symbol);
       const loader = document.getElementById('chartLoadingOverlay');
       if (loader) loader.style.display = 'flex';
     } else {
       const badge = document.getElementById('projSymbolBadge');
-      if (badge) badge.innerText = symbol;
+      if (badge) badge.innerText = formatDisplaySymbol(symbol);
     }
 
     try {

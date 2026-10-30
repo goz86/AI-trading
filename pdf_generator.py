@@ -49,9 +49,25 @@ def parse_date_display(dt_str: str) -> tuple[str, str, str]:
         return (dt_str, dt_str, dt_str)
 
 
+def format_display_symbol(sym: str) -> str:
+    s = str(sym).strip().upper()
+    if s in ("GC=F", "GC_F") or "XAU" in s or "GOLD" in s:
+        return "XAU/USD"
+    if s in ("SI=F", "SI_F") or "XAG" in s or "SILVER" in s:
+        return "XAG/USD"
+    if s in ("CL=F", "CL_F") or "USOIL" in s or "CRUDE" in s:
+        return "USOIL"
+    if s.endswith("-USD"):
+        return s.replace("-USD", "/USD")
+    if s.endswith("-USDT"):
+        return s.replace("-USDT", "/USDT")
+    return s
+
+
 def generate_summary_data(report: dict, api_key: str | None = None, provider: str = "google") -> dict:
     """Synthesizes raw TradingAgents report into clean Vietnamese summary structure matching 5 Phút Trading."""
-    symbol = report.get("symbol", "BTC-USD")
+    raw_sym = report.get("symbol", "BTC-USD")
+    symbol = format_display_symbol(raw_sym)
     date = report.get("date", "")
     rating = report.get("rating", "HOLD")
     elapsed = report.get("elapsed_minutes", 3.0)

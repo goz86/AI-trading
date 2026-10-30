@@ -150,7 +150,14 @@ def save_user_config(cfg: dict):
 
 
 def clean_symbol(symbol: str) -> str:
-    return "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in symbol.strip().upper())
+    s = symbol.strip().upper().replace("/", "-")
+    if s in ("XAU", "GOLD", "VANG", "XAUUSD", "XAU-USD", "GC=F", "GC_F"):
+        return "XAU-USD"
+    if s in ("XAG", "SILVER", "XAGUSD", "XAG-USD", "SI=F", "SI_F"):
+        return "XAG-USD"
+    if s in ("CL=F", "CL_F", "USOIL", "WTI", "OIL", "DAU"):
+        return "CL=F"
+    return "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in s)
 
 
 def test_api_key(provider: str, api_key: str, base_url: str = "") -> dict:
@@ -362,8 +369,12 @@ def fetch_candles(symbol: str, period: str = "6mo", interval: str = "1d") -> dic
         yf_symbol = "SOL-USD"
     elif sym in ("BNB", "BINANCECOIN"):
         yf_symbol = "BNB-USD"
-    elif sym in ("XAU", "GOLD", "VANG", "XAU-USD", "XAUUSD"):
+    elif sym in ("XAU", "GOLD", "VANG", "XAU-USD", "XAUUSD", "GC=F", "GC_F"):
         yf_symbol = "GC=F"
+    elif sym in ("XAG", "SILVER", "XAG-USD", "XAGUSD", "SI=F", "SI_F"):
+        yf_symbol = "SI=F"
+    elif sym in ("USOIL", "WTI", "OIL", "DAU", "CL=F", "CL_F"):
+        yf_symbol = "CL=F"
     
     try:
         import yfinance as yf
@@ -700,8 +711,8 @@ def run_analysis_worker(params: dict):
         cfg["memory_log_path"] = str(symbol_dir / "so_nho.md")
         cfg["output_language"] = "English"
 
-        is_crypto = symbol.endswith("-USD")
-        is_commodity = symbol.endswith("=F") or symbol.startswith("^")
+        is_crypto = symbol.endswith("-USD") and not symbol.startswith("XAU") and not symbol.startswith("XAG")
+        is_commodity = symbol.endswith("=F") or symbol.startswith("^") or symbol.startswith("XAU") or symbol.startswith("XAG") or symbol.startswith("CL")
         selected_analysts = list(analysts)
         if not is_crypto and not is_commodity and "fundamentals" not in selected_analysts:
             selected_analysts.append("fundamentals")
