@@ -1536,7 +1536,7 @@
     scene.background = new THREE.Color(0xbddcd5); // Luxury soothing studio mint
 
     // 2. Camera: Isometric high-executive angle
-    camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(34, width / height, 0.5, 300);
     camera.position.set(26, 24, 30);
 
     // 3. Renderer with high-end PCF soft shadows
@@ -1573,7 +1573,8 @@
     sunLight.shadow.camera.right = 24;
     sunLight.shadow.camera.top = 24;
     sunLight.shadow.camera.bottom = -24;
-    sunLight.shadow.bias = -0.0004;
+    sunLight.shadow.bias = -0.0001;
+    sunLight.shadow.normalBias = 0.02;
     scene.add(sunLight);
 
     // Soft cool fill light
@@ -1617,12 +1618,7 @@
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Perimeter dark walnut trim inlay
-    const trimGeo = new THREE.BoxGeometry(25.8, 0.12, 21.8);
-    const trimMat = new THREE.MeshStandardMaterial({ color: 0x3d2c20, roughness: 0.5 });
-    const trim = new THREE.Mesh(trimGeo, trimMat);
-    trim.position.y = 0.04;
-    scene.add(trim);
+
 
     // 3. Central Executive Glass Boardroom (Replacing crude castle)
     buildExecutiveBoardroom();
@@ -1702,12 +1698,12 @@
 
     const rw = 8.6, rh = 2.8, rd = 6.4;
 
-    // Boardroom floor area rug (Dark woven wool)
+    // Boardroom floor area rug (Dark woven wool, safely elevated above oak floor)
     const rug = new THREE.Mesh(
       new THREE.BoxGeometry(rw - 0.4, 0.02, rd - 0.4),
       new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
     );
-    rug.position.y = 0.02;
+    rug.position.y = 0.025;
     boardroom.add(rug);
 
     // 4 Corner structural pillars (Dark matte steel)
