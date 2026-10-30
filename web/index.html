@@ -1329,11 +1329,15 @@
   ];
 
   window.addEventListener("DOMContentLoaded", async () => {
+    try {
+      initVirtualOffice3D();
+    } catch (err) {
+      console.error("Lỗi khởi tạo Văn phòng 3D:", err);
+    }
     setDateOffset(-1);
-    await loadConfigFromServer();
+    loadConfigFromServer();
     loadHistory();
     startPolling();
-    initVirtualOffice3D();
   });
 
   function setDateOffset(offsetDays) {
@@ -1734,7 +1738,11 @@
     scene.add(boardSpot);
 
     // 6. Build the Complete Executive Floor Diorama
-    buildOfficeDiorama();
+    try {
+      buildOfficeDiorama();
+    } catch (err) {
+      console.error("Lỗi dựng mô hình văn phòng 3D:", err);
+    }
 
     // 7. Initial Professional Dialogs
     setTimeout(() => {
@@ -2021,6 +2029,9 @@
     boardroomDisplayMesh = new THREE.Mesh(dispGeo, dispMat);
     boardroomDisplayMesh.position.set(0, 1.5, -hd + 0.2);
     boardroom.add(boardroomDisplayMesh);
+
+    // Live Marquee Ticker Banner on Boardroom Top
+    createLiveTickerRibbon(boardroom, rw, rh, hd);
 
     scene.add(boardroom);
   }
@@ -2676,6 +2687,7 @@
     if (!frame || !renderer || !camera) return;
     const w = frame.clientWidth;
     const h = frame.clientHeight;
+    if (w <= 10 || h <= 10) return;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
