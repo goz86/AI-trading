@@ -1251,6 +1251,278 @@
   }
 
   // ================= 3D VIRTUAL OFFICE DIORAMA (THREE.JS) =================
+  // High-End Executive Trading Floor & Architectural Command Center
+  let serverRackLeds = [];
+  let boardroomDisplayMesh = null;
+
+  // Cache generated canvas textures for optimal performance
+  const textureCache = {};
+
+  function generateCandleTexture(label, isBullish) {
+    const key = `candle_${label}_${isBullish}`;
+    if (textureCache[key]) return textureCache[key];
+
+    const c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 140;
+    const ctx = c.getContext("2d");
+
+    // Dark Bloomberg terminal background
+    ctx.fillStyle = "#0f141c";
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    // Grid lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
+    for (let y = 20; y < c.height; y += 22) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(c.width, y);
+      ctx.stroke();
+    }
+    for (let x = 30; x < c.width; x += 36) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, c.height);
+      ctx.stroke();
+    }
+
+    // Top ticker bar
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, 0, c.width, 18);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px sans-serif";
+    ctx.fillText(`${label || "BTC/USDT"} 1D LIVE`, 6, 12);
+    ctx.fillStyle = isBullish ? "#22c55e" : "#ef4444";
+    ctx.fillText(isBullish ? "+3.84%" : "-1.42%", c.width - 44, 12);
+
+    // Candlesticks
+    const candles = isBullish 
+      ? [45, 52, 48, 60, 58, 72, 68, 85, 80, 95, 90, 105, 100, 115]
+      : [110, 105, 112, 98, 102, 88, 92, 78, 82, 68, 72, 58, 62, 50];
+
+    const startX = 12;
+    const stepX = (c.width - 24) / candles.length;
+    for (let i = 0; i < candles.length; i++) {
+      const open = 130 - candles[i];
+      const close = 130 - (candles[i] + (i % 2 === 0 ? 8 : -6));
+      const high = Math.min(open, close) - 4 - Math.random() * 5;
+      const low = Math.max(open, close) + 4 + Math.random() * 5;
+      const isGreen = close < open;
+      const col = isGreen ? "#22c55e" : "#ef4444";
+
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(startX + i * stepX + 3, high);
+      ctx.lineTo(startX + i * stepX + 3, low);
+      ctx.stroke();
+
+      ctx.fillStyle = col;
+      ctx.fillRect(startX + i * stepX, Math.min(open, close), 6, Math.max(2, Math.abs(close - open)));
+    }
+
+    // Moving average curves
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < candles.length; i++) {
+      const px = startX + i * stepX + 3;
+      const py = 130 - candles[i] * 0.95;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = "#a855f7";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let i = 0; i < candles.length; i++) {
+      const px = startX + i * stepX + 3;
+      const py = 130 - candles[i] * 0.82;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    const tex = new THREE.CanvasTexture(c);
+    textureCache[key] = tex;
+    return tex;
+  }
+
+  function generateOrderbookTexture() {
+    if (textureCache["orderbook"]) return textureCache["orderbook"];
+
+    const c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 140;
+    const ctx = c.getContext("2d");
+
+    ctx.fillStyle = "#0b0f17";
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, 0, c.width, 16);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 8px sans-serif";
+    ctx.fillText("ORDER BOOK DEPTH", 8, 11);
+
+    // Bids & Asks ladder
+    const rows = 6;
+    for (let i = 0; i < rows; i++) {
+      const y = 24 + i * 18;
+      // Bid (green bar on left)
+      const bidW = 30 + Math.random() * 80;
+      ctx.fillStyle = "rgba(34, 197, 94, 0.18)";
+      ctx.fillRect(0, y, bidW, 14);
+      ctx.fillStyle = "#22c55e";
+      ctx.font = "8px monospace";
+      ctx.fillText((81400 - i * 50).toFixed(0), 6, y + 10);
+      ctx.fillText((Math.random() * 2.5).toFixed(2), 70, y + 10);
+
+      // Ask (red bar on right)
+      const askW = 30 + Math.random() * 80;
+      ctx.fillStyle = "rgba(239, 68, 68, 0.18)";
+      ctx.fillRect(c.width - askW, y, askW, 14);
+      ctx.fillStyle = "#ef4444";
+      ctx.fillText((81500 + i * 50).toFixed(0), 140, y + 10);
+      ctx.fillText((Math.random() * 2.5).toFixed(2), 205, y + 10);
+    }
+
+    const tex = new THREE.CanvasTexture(c);
+    textureCache["orderbook"] = tex;
+    return tex;
+  }
+
+  function generateBoardroomDisplayTexture() {
+    if (textureCache["boardroom_screen"]) return textureCache["boardroom_screen"];
+
+    const c = document.createElement("canvas");
+    c.width = 1024;
+    c.height = 512;
+    const ctx = c.getContext("2d");
+
+    // Luxury high-tech background
+    ctx.fillStyle = "#090d14";
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    // Header bar
+    const grad = ctx.createLinearGradient(0, 0, c.width, 0);
+    grad.addColorStop(0, "#1e293b");
+    grad.addColorStop(0.5, "#0f172a");
+    grad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, c.width, 42);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 17px -apple-system, sans-serif";
+    ctx.fillText("AI TRADING STUDIO · EXECUTIVE WAR ROOM", 20, 27);
+    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold 14px monospace";
+    ctx.fillText("BTC/USD: $81,485.50  |  CONSENSUS: HOLD  |  R:R 1:2.5", c.width - 480, 27);
+
+    // Left panel: Main Candlestick chart
+    ctx.fillStyle = "#111827";
+    ctx.fillRect(16, 56, 620, 440);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(16, 56, 620, 440);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("TECHNICAL CONSENSUS: SMA200 SUPPORT & MOMENTUM PROFILE", 30, 80);
+
+    // Main candles
+    const candles = [60, 75, 70, 95, 90, 120, 110, 145, 140, 180, 170, 210, 200, 240, 230, 270, 255, 290];
+    const cStartX = 35;
+    const cStep = 580 / candles.length;
+    for (let i = 0; i < candles.length; i++) {
+      const open = 440 - candles[i];
+      const close = 440 - (candles[i] + (i % 2 === 0 ? 14 : -10));
+      const col = close < open ? "#22c55e" : "#ef4444";
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cStartX + i * cStep + 8, Math.min(open, close) - 12);
+      ctx.lineTo(cStartX + i * cStep + 8, Math.max(open, close) + 12);
+      ctx.stroke();
+
+      ctx.fillStyle = col;
+      ctx.fillRect(cStartX + i * cStep, Math.min(open, close), 16, Math.max(4, Math.abs(close - open)));
+    }
+
+    // Moving average curves
+    ctx.strokeStyle = "#f59e0b"; // SMA 200
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i < candles.length; i++) {
+      const px = cStartX + i * cStep + 8;
+      const py = 440 - candles[i] * 0.9;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = "#06b6d4"; // EMA 10
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i < candles.length; i++) {
+      const px = cStartX + i * cStep + 8;
+      const py = 440 - candles[i] * 1.05;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Right top panel: Market Heatmap
+    ctx.fillStyle = "#111827";
+    ctx.fillRect(652, 56, 356, 210);
+    ctx.strokeRect(652, 56, 356, 210);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("MULTI-ASSET HEATMAP", 668, 80);
+
+    const heatmaps = [
+      { sym: "BTC", ret: "+4.12%", col: "#15803d", w: 160, h: 70, x: 668, y: 94 },
+      { sym: "ETH", ret: "+3.45%", col: "#166534", w: 160, h: 70, x: 834, y: 94 },
+      { sym: "SOL", ret: "+7.80%", col: "#22c55e", w: 104, h: 80, x: 668, y: 172 },
+      { sym: "NVDA", ret: "+1.95%", col: "#15803d", w: 104, h: 80, x: 778, y: 172 },
+      { sym: "GOLD", ret: "-0.24%", col: "#991b1b", w: 104, h: 80, x: 888, y: 172 }
+    ];
+    heatmaps.forEach(h => {
+      ctx.fillStyle = h.col;
+      ctx.fillRect(h.x, h.y, h.w, h.h);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillText(h.sym, h.x + 8, h.y + 24);
+      ctx.font = "11px monospace";
+      ctx.fillText(h.ret, h.x + 8, h.y + 44);
+    });
+
+    // Right bottom panel: AI Consensus Gauges
+    ctx.fillStyle = "#111827";
+    ctx.fillRect(652, 282, 356, 214);
+    ctx.strokeRect(652, 282, 356, 214);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("HỘI ĐỒNG PHÂN TÍCH RỦI RO & KHUYẾN NGHỊ", 668, 308);
+
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 20px -apple-system, sans-serif";
+    ctx.fillText("KHUYẾN NGHỊ: HOLD (GIỮ VỊ THẾ)", 668, 345);
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("• Chặn lỗ Spot (Long): $75,250", 668, 380);
+    ctx.fillText("• Vùng chốt lời (TP): $84,039 (Bollinger Upper)", 668, 405);
+    ctx.fillText("• Tranh biện: Phe Mua 58% vs Phe Bán 42%", 668, 430);
+    ctx.fillText("• Tâm lý thị trường: 68/100 (Greed / Hưng phấn)", 668, 455);
+
+    const tex = new THREE.CanvasTexture(c);
+    textureCache["boardroom_screen"] = tex;
+    return tex;
+  }
+
   function initVirtualOffice3D() {
     const frame = document.getElementById("dioramaFrame");
     const canvas = document.getElementById("officeCanvas");
@@ -1261,14 +1533,14 @@
 
     // 1. Scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xcbe4de); // Soft soothing mint studio
+    scene.background = new THREE.Color(0xbddcd5); // Luxury soothing studio mint
 
-    // 2. Camera (Isometric view matching reference photo)
-    camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 1000);
-    camera.position.set(24, 22, 28);
+    // 2. Camera: Isometric high-executive angle
+    camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 1000);
+    camera.position.set(26, 24, 30);
 
-    // 3. Renderer with soft shadows
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    // 3. Renderer with high-end PCF soft shadows
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
@@ -1278,43 +1550,50 @@
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2.2;
-    controls.minDistance = 18;
-    controls.maxDistance = 55;
+    controls.maxPolarAngle = Math.PI / 2.25;
+    controls.minDistance = 15;
+    controls.maxDistance = 60;
     controls.autoRotate = autoRotate;
-    controls.autoRotateSpeed = 0.5;
-    controls.target.set(0, 1.2, 1);
+    controls.autoRotateSpeed = 0.6;
+    controls.target.set(0, 1.2, 0.5);
 
-    // 5. Lighting (Warm office light + soft ambient)
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xc0d8ce, 0.85);
+    // 5. Studio Lighting Rig
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xb8d4cb, 0.8);
     scene.add(hemiLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfff8ee, 1.05);
-    sunLight.position.set(22, 38, 18);
+    // Sun / Key light
+    const sunLight = new THREE.DirectionalLight(0xfffaec, 1.15);
+    sunLight.position.set(24, 40, 20);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
     sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 80;
-    sunLight.shadow.camera.left = -22;
-    sunLight.shadow.camera.right = 22;
-    sunLight.shadow.camera.top = 22;
-    sunLight.shadow.camera.bottom = -22;
-    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.camera.far = 90;
+    sunLight.shadow.camera.left = -24;
+    sunLight.shadow.camera.right = 24;
+    sunLight.shadow.camera.top = 24;
+    sunLight.shadow.camera.bottom = -24;
+    sunLight.shadow.bias = -0.0004;
     scene.add(sunLight);
 
-    const fillLight = new THREE.DirectionalLight(0xbad2c8, 0.4);
-    fillLight.position.set(-15, 20, -15);
+    // Soft cool fill light
+    const fillLight = new THREE.DirectionalLight(0x9fc2b8, 0.45);
+    fillLight.position.set(-20, 22, -18);
     scene.add(fillLight);
 
-    // 6. Build the Open-Plan Office Diorama
+    // Accent interior spot for boardroom
+    const boardSpot = new THREE.PointLight(0xfff1dc, 0.8, 16);
+    boardSpot.position.set(0, 4.5, -0.2);
+    scene.add(boardSpot);
+
+    // 6. Build the Complete Executive Floor Diorama
     buildOfficeDiorama();
 
-    // 7. Initial Floating Dialogs
+    // 7. Initial Professional Dialogs
     setTimeout(() => {
-      spawnSpeechBubble("castle", "Đang giữ cổng duyệt chiến lược tuần này.");
-      spawnSpeechBubble("tech", "Nến ngày phản ứng tốt tại vùng hỗ trợ.");
-      spawnSpeechBubble("news", "Mang tài liệu vĩ mô sang bàn Giám đốc.");
+      spawnSpeechBubble("castle", "Đang chủ trì phiên họp hội đồng chiến lược.");
+      spawnSpeechBubble("tech", "Nến ngày giữ vững hỗ trợ SMA200, volume tốt.");
+      spawnSpeechBubble("news", "Dữ liệu vĩ mô cập nhật liên tục từ Google & CoinTelegraph.");
     }, 600);
 
     window.addEventListener("resize", onWindowResize);
@@ -1322,181 +1601,585 @@
   }
 
   function buildOfficeDiorama() {
-    // 1. Diorama Ceramic Tray (Smooth rounded beveled tray as in reference photo)
-    const trayGeo = new THREE.BoxGeometry(25, 1.2, 21);
-    const trayMat = new THREE.MeshLambertMaterial({ color: 0xfcfbf8 }); // Warm cream ceramic
+    // 1. Sleek Beveled Ceramic Base Tray
+    const trayGeo = new THREE.BoxGeometry(26.4, 1.2, 22.4);
+    const trayMat = new THREE.MeshStandardMaterial({ color: 0x242a32, roughness: 0.45, metalness: 0.2 });
     const tray = new THREE.Mesh(trayGeo, trayMat);
     tray.position.y = -0.6;
     tray.receiveShadow = true;
     scene.add(tray);
 
-    // 2. Light Oak Wood Floor
-    const floorGeo = new THREE.BoxGeometry(24.2, 0.1, 20.2);
-    const floorMat = new THREE.MeshLambertMaterial({ color: 0xeee7dc }); // Nordic light bleached oak
+    // 2. Luxury Oak Floor
+    const floorGeo = new THREE.BoxGeometry(25.6, 0.1, 21.6);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0xe8dfd2, roughness: 0.6, metalness: 0.05 });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.position.y = 0.05;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // 3. Central Executive Glass Castle Pavilion (Reference central structure)
-    buildCentralCastle();
+    // Perimeter dark walnut trim inlay
+    const trimGeo = new THREE.BoxGeometry(25.8, 0.12, 21.8);
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0x3d2c20, roughness: 0.5 });
+    const trim = new THREE.Mesh(trimGeo, trimMat);
+    trim.position.y = 0.04;
+    scene.add(trim);
 
-    // 4. Low Partition Walls dividing rooms (Pastel partitions)
-    const wallMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    const pWalls = [
+    // 3. Central Executive Glass Boardroom (Replacing crude castle)
+    buildExecutiveBoardroom();
+
+    // 4. Low Architectural Frosted Dividers
+    const glassDividerMat = new THREE.MeshStandardMaterial({
+      color: 0xe2f1f5,
+      transparent: true,
+      opacity: 0.35,
+      roughness: 0.15,
+      metalness: 0.4
+    });
+    const capMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3 });
+
+    const dividers = [
       // North partitions
-      { w: 0.2, h: 1.1, d: 6, x: -3.8, z: -4.5 },
-      { w: 0.2, h: 1.1, d: 6, x: 3.8, z: -4.5 },
+      { w: 0.15, h: 1.15, d: 6.2, x: -4.4, z: -4.5 },
+      { w: 0.15, h: 1.15, d: 6.2, x: 4.4, z: -4.5 },
       // South partitions
-      { w: 0.2, h: 1.1, d: 6.5, x: -4.2, z: 4.8 },
-      { w: 0.2, h: 1.1, d: 6.5, x: 4.2, z: 4.8 },
+      { w: 0.15, h: 1.15, d: 6.5, x: -4.6, z: 4.8 },
+      { w: 0.15, h: 1.15, d: 6.5, x: 4.6, z: 4.8 },
       // Horizontal dividers
-      { w: 5.5, h: 1.1, d: 0.2, x: -6.8, z: 0.5 },
-      { w: 5.5, h: 1.1, d: 0.2, x: 6.8, z: 0.5 }
+      { w: 6.0, h: 1.15, d: 0.15, x: -7.6, z: 0.5 },
+      { w: 6.0, h: 1.15, d: 0.15, x: 7.6, z: 0.5 }
     ];
-    pWalls.forEach(pw => {
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(pw.w, pw.h, pw.d), wallMat);
-      wall.position.set(pw.x, pw.h / 2 + 0.1, pw.z);
-      wall.castShadow = true;
-      wall.receiveShadow = true;
-      scene.add(wall);
+    dividers.forEach(d => {
+      const pane = new THREE.Mesh(new THREE.BoxGeometry(d.w, d.h, d.d), glassDividerMat);
+      pane.position.set(d.x, d.h / 2 + 0.1, d.z);
+      pane.castShadow = true;
+      pane.receiveShadow = true;
+      scene.add(pane);
+
+      // Top metal rail
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, 0.06, d.d), capMat);
+      cap.position.set(d.x, d.h + 0.1, d.z);
+      scene.add(cap);
     });
 
-    // 5. Office Cubicles & Furniture
+    // 5. Professional Workstation Pods
     // Tech Desk (North-West)
-    createOfficeDesk(-6.5, -4.5, 0, 0x2a9d55);
-    createWhiteboard(-9.5, -6, Math.PI / 4);
+    createOfficeDesk(-7.2, -4.5, 0, 0x0071e3, "tech");
+    createWhiteboard(-10.2, -6.5, Math.PI / 4);
+    createServerRack(-10.8, -3.2, 0);
 
     // News Desk (North-East)
-    createOfficeDesk(6.5, -4.5, Math.PI, 0x0071e3);
-    createBookshelf(9.2, -6, 0);
+    createOfficeDesk(7.2, -4.5, Math.PI, 0x0284c7, "news");
+    createBookshelf(10.2, -6.5, 0);
 
-    // Social Lounge (South-East)
-    createLoungeArea(7.2, 3.8);
+    // Social Media Lounge (South-East)
+    createLoungeArea(7.8, 4.2);
 
     // Fundamentals Office (South-West)
-    createOfficeDesk(-7.2, 3.8, Math.PI / 2, 0xbf5af2);
-    createFilingCabinet(-9.4, 5.5);
+    createOfficeDesk(-7.8, 4.2, Math.PI / 2, 0x7c3aed, "fundamentals");
+    createFilingCabinet(-10.5, 6.0);
 
-    // War Room Debate Table (South-Center)
+    // Debate Station: Bull vs Bear (South-Center)
     createDebateArena(0, 6.2);
 
-    // Trader Station (Southmost)
-    createOfficeDesk(0, 8.5, 0, 0x2a9d55);
+    // Lead Execution Trader Station (Southmost)
+    createOfficeDesk(0, 8.8, 0, 0x16a34a, "trader");
 
-    // Indoor decorative plants & water cooler
-    createIndoorPlant(-10.2, -1.5);
-    createIndoorPlant(10.2, -1.5);
-    createIndoorPlant(0, -8.5);
-    createWaterCooler(-3.5, 0);
+    // Luxury Interior Plants & Amenities
+    createFicusPlant(-11.2, -1.0);
+    createFicusPlant(11.2, -1.0);
+    createFicusPlant(0, -9.2);
+    createWaterBar(-3.8, 0);
 
-    // 6. Spawn Workers (Avatars)
+    // 6. Spawn High-Fidelity 3D Stylized Trader Avatars
     OFFICE_DEPTS.forEach((dept, i) => {
       createOfficeWorker(dept, i);
     });
   }
 
-  function buildCentralCastle() {
-    const castleGroup = new THREE.Group();
-    castleGroup.position.set(0, 0.1, 0);
+  function buildExecutiveBoardroom() {
+    const boardroom = new THREE.Group();
+    boardroom.position.set(0, 0.1, -0.4);
 
-    // Central Building Block (White stone)
-    const centerBody = new THREE.Mesh(
-      new THREE.BoxGeometry(4.2, 3.2, 4.2),
-      new THREE.MeshLambertMaterial({ color: 0xfdfdfc })
+    const rw = 8.6, rh = 2.8, rd = 6.4;
+
+    // Boardroom floor area rug (Dark woven wool)
+    const rug = new THREE.Mesh(
+      new THREE.BoxGeometry(rw - 0.4, 0.02, rd - 0.4),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
     );
-    centerBody.position.y = 1.6;
-    centerBody.castShadow = true;
-    castleGroup.add(centerBody);
+    rug.position.y = 0.02;
+    boardroom.add(rug);
 
-    // Conical pastel towers on corners (Matching reference photo castle style)
-    const towerMat = new THREE.MeshLambertMaterial({ color: 0xf8f8f6 });
-    const roofColors = [0xd98282, 0x82b2d9, 0xfdb462, 0x8dd3c7];
-
-    [[-2, -2], [2, -2], [-2, 2], [2, 2]].forEach(([cx, cz], idx) => {
-      const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 3.8, 12), towerMat);
-      tower.position.set(cx, 1.9, cz);
-      tower.castShadow = true;
-      castleGroup.add(tower);
-
-      const roof = new THREE.Mesh(
-        new THREE.ConeGeometry(0.8, 1.6, 12),
-        new THREE.MeshLambertMaterial({ color: roofColors[idx] })
-      );
-      roof.position.set(cx, 4.5, cz);
-      roof.castShadow = true;
-      castleGroup.add(roof);
+    // 4 Corner structural pillars (Dark matte steel)
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3, metalness: 0.8 });
+    const hw = rw / 2, hd = rd / 2;
+    [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]].forEach(([px, pz]) => {
+      const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.3, rh, 0.3), pillarMat);
+      pillar.position.set(px, rh / 2, pz);
+      pillar.castShadow = true;
+      boardroom.add(pillar);
     });
 
-    // Central Main Conical Tower
-    const mainRoof = new THREE.Mesh(
-      new THREE.ConeGeometry(1.6, 2.2, 12),
-      new THREE.MeshLambertMaterial({ color: 0x822727 })
-    );
-    mainRoof.position.y = 4.2;
-    mainRoof.castShadow = true;
-    castleGroup.add(mainRoof);
+    // Panoramic Glass Walls (Floor-to-ceiling)
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0xecfdf5,
+      transparent: true,
+      opacity: 0.24,
+      roughness: 0.08,
+      metalness: 0.85
+    });
 
-    // Glass French Entrance
-    const glassEntrance = new THREE.Mesh(
-      new THREE.BoxGeometry(1.8, 2.2, 0.2),
-      new THREE.MeshLambertMaterial({ color: 0xbfd3cc, transparent: true, opacity: 0.65 })
-    );
-    glassEntrance.position.set(0, 1.1, 2.15);
-    castleGroup.add(glassEntrance);
+    // Back wall (North)
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(rw, rh, 0.1), glassMat);
+    backWall.position.set(0, rh / 2, -hd);
+    boardroom.add(backWall);
 
-    scene.add(castleGroup);
+    // Left wall (West)
+    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.1, rh, rd), glassMat);
+    leftWall.position.set(-hw, rh / 2, 0);
+    boardroom.add(leftWall);
+
+    // Right wall (East)
+    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.1, rh, rd), glassMat);
+    rightWall.position.set(hw, rh / 2, 0);
+    boardroom.add(rightWall);
+
+    // Front wall (South) with open central glass sliding doorway
+    const fwSideW = (rw - 2.8) / 2;
+    const fLeft = new THREE.Mesh(new THREE.BoxGeometry(fwSideW, rh, 0.1), glassMat);
+    fLeft.position.set(-hw + fwSideW / 2, rh / 2, hd);
+    boardroom.add(fLeft);
+
+    const fRight = new THREE.Mesh(new THREE.BoxGeometry(fwSideW, rh, 0.1), glassMat);
+    fRight.position.set(hw - fwSideW / 2, rh / 2, hd);
+    boardroom.add(fRight);
+
+    // Open Architectural Perimeter Frame & Skylight (allows clear view inside boardroom)
+    const beamThick = 0.35, beamH = 0.18;
+    const bMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.7 });
+    
+    // North & South beams
+    const bNorth = new THREE.Mesh(new THREE.BoxGeometry(rw + 0.2, beamH, beamThick), bMat);
+    bNorth.position.set(0, rh + beamH / 2, -hd);
+    boardroom.add(bNorth);
+    const bSouth = new THREE.Mesh(new THREE.BoxGeometry(rw + 0.2, beamH, beamThick), bMat);
+    bSouth.position.set(0, rh + beamH / 2, hd);
+    boardroom.add(bSouth);
+    
+    // West & East beams
+    const bWest = new THREE.Mesh(new THREE.BoxGeometry(beamThick, beamH, rd + 0.2), bMat);
+    bWest.position.set(-hw, rh + beamH / 2, 0);
+    boardroom.add(bWest);
+    const bEast = new THREE.Mesh(new THREE.BoxGeometry(beamThick, beamH, rd + 0.2), bMat);
+    bEast.position.set(hw, rh + beamH / 2, 0);
+    boardroom.add(bEast);
+
+    // Ultra-clear glass skylight roof
+    const glassRoof = new THREE.Mesh(
+      new THREE.BoxGeometry(rw, 0.03, rd),
+      new THREE.MeshStandardMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.18, roughness: 0.05, metalness: 0.9 })
+    );
+    glassRoof.position.set(0, rh + 0.02, 0);
+    boardroom.add(glassRoof);
+
+    // Perimeter cyan ambient LED track
+    [-hd + 0.2, hd - 0.2].forEach(lz => {
+      const ledBar = new THREE.Mesh(new THREE.BoxGeometry(rw - 0.6, 0.04, 0.04), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+      ledBar.position.set(0, rh - 0.02, lz);
+      boardroom.add(ledBar);
+    });
+
+    // Large Walnut Executive Boardroom Table
+    const tableTop = new THREE.Mesh(
+      new THREE.BoxGeometry(5.2, 0.12, 2.2),
+      new THREE.MeshStandardMaterial({ color: 0x3b2416, roughness: 0.35, metalness: 0.1 })
+    );
+    tableTop.position.set(0, 0.9, 0.2);
+    tableTop.castShadow = true;
+    tableTop.receiveShadow = true;
+    boardroom.add(tableTop);
+
+    // Brushed Chrome Pedestal Bases
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.2, metalness: 0.9 });
+    [-1.6, 1.6].forEach(bx => {
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.85, 16), chromeMat);
+      base.position.set(bx, 0.45, 0.2);
+      base.castShadow = true;
+      boardroom.add(base);
+    });
+
+    // Center conference speakerphone pod
+    const confPod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.28, 0.08, 16),
+      new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3 })
+    );
+    confPod.position.set(0, 0.98, 0.2);
+    boardroom.add(confPod);
+
+    const podRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.14, 0.18, 16),
+      new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide })
+    );
+    podRing.rotation.x = -Math.PI / 2;
+    podRing.position.set(0, 1.025, 0.2);
+    boardroom.add(podRing);
+
+    // 6 Executive Leather Boardroom Chairs around table
+    const chairCoords = [
+      [-1.6, -0.6, 0], [0, -0.6, 0], [1.6, -0.6, 0], // North side
+      [-1.6, 1.0, Math.PI], [0, 1.0, Math.PI], [1.6, 1.0, Math.PI] // South side
+    ];
+    chairCoords.forEach(([cx, cz, crot]) => {
+      const chairGroup = createErgonomicChair(0x1e293b, true);
+      chairGroup.position.set(cx, 0, cz);
+      chairGroup.rotation.y = crot;
+      boardroom.add(chairGroup);
+    });
+
+    // Giant Curved Executive Command Wall (Mounted on back glass wall)
+    const dispGeo = new THREE.BoxGeometry(5.6, 2.2, 0.08);
+    const dispMat = new THREE.MeshStandardMaterial({
+      map: generateBoardroomDisplayTexture(),
+      emissive: 0x223344,
+      emissiveIntensity: 0.65,
+      roughness: 0.2
+    });
+    boardroomDisplayMesh = new THREE.Mesh(dispGeo, dispMat);
+    boardroomDisplayMesh.position.set(0, 1.5, -hd + 0.2);
+    boardroom.add(boardroomDisplayMesh);
+
+    scene.add(boardroom);
   }
 
-  function createOfficeDesk(x, z, rot, chartScreenColor) {
+  function createErgonomicChair(leatherColor = 0x1e293b, isExecutive = false) {
+    const chair = new THREE.Group();
+    const chrome = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.2, metalness: 0.85 });
+    const seatMat = new THREE.MeshStandardMaterial({ color: leatherColor, roughness: 0.6 });
+
+    // 5-Star Caster Base
+    const basePiston = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), chrome);
+    basePiston.position.y = 0.25;
+    chair.add(basePiston);
+
+    for (let a = 0; a < 5; a++) {
+      const ang = (a * Math.PI * 2) / 5;
+      const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.3), chrome);
+      spoke.position.set(Math.sin(ang) * 0.16, 0.08, Math.cos(ang) * 0.16);
+      spoke.rotation.y = ang;
+      chair.add(spoke);
+    }
+
+    // Seat cushion
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.08, 0.52), seatMat);
+    seat.position.y = 0.5;
+    seat.castShadow = true;
+    chair.add(seat);
+
+    // Contoured Mesh Backrest
+    const backH = isExecutive ? 0.72 : 0.58;
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.52, backH, 0.06), seatMat);
+    back.position.set(0, 0.5 + backH / 2, -0.24);
+    back.rotation.x = -0.08;
+    back.castShadow = true;
+    chair.add(back);
+
+    // Headrest for executive chair
+    if (isExecutive) {
+      const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.16, 0.06), seatMat);
+      headrest.position.set(0, 1.25, -0.27);
+      chair.add(headrest);
+    }
+
+    // Armrests
+    [-0.28, 0.28].forEach(ax => {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.3), chrome);
+      arm.position.set(ax, 0.65, -0.05);
+      chair.add(arm);
+      const armPad = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.03, 0.28), seatMat);
+      armPad.position.set(ax, 0.75, -0.05);
+      chair.add(armPad);
+    });
+
+    return chair;
+  }
+
+  function createOfficeDesk(x, z, rot, chartColor, deptId) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
     group.rotation.y = rot;
 
-    // Wooden desk top
+    // Natural Oak Desk Top with Beveled Edge
     const deskTop = new THREE.Mesh(
-      new THREE.BoxGeometry(2.4, 0.08, 1.2),
-      new THREE.MeshLambertMaterial({ color: 0xf5ede1 })
+      new THREE.BoxGeometry(2.6, 0.08, 1.3),
+      new THREE.MeshStandardMaterial({ color: 0xf5eee6, roughness: 0.4 })
     );
     deskTop.position.y = 0.9;
     deskTop.castShadow = true;
+    deskTop.receiveShadow = true;
     group.add(deskTop);
 
-    // Metal legs
-    const legMat = new THREE.MeshLambertMaterial({ color: 0xd2d2d0 });
-    [[-1.1, -0.5], [1.1, -0.5], [-1.1, 0.5], [1.1, 0.5]].forEach(([lx, lz]) => {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9), legMat);
-      leg.position.set(lx, 0.45, lz);
-      group.add(leg);
+    // Modern Angled Black Metal Legs
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.3, metalness: 0.7 });
+    [[-1.2, 0], [1.2, 0]].forEach(([lx]) => {
+      const legFrame = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.9, 1.1), legMat);
+      legFrame.position.set(lx, 0.45, 0);
+      legFrame.castShadow = true;
+      group.add(legFrame);
     });
 
-    // Dual Monitors (with glowing chart texture color)
-    [-0.5, 0.5].forEach(mx => {
-      const monitor = new THREE.Mesh(
-        new THREE.BoxGeometry(0.8, 0.5, 0.04),
-        new THREE.MeshBasicMaterial({ color: chartScreenColor || 0x2a9d55 })
-      );
-      monitor.position.set(mx, 1.3, -0.2);
-      group.add(monitor);
-
-      const stand = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.03, 0.03, 0.35),
-        new THREE.MeshLambertMaterial({ color: 0x333333 })
-      );
-      stand.position.set(mx, 1.05, -0.2);
-      group.add(stand);
-    });
-
-    // Swivel Chair
-    const chair = new THREE.Mesh(
-      new THREE.BoxGeometry(0.6, 0.6, 0.6),
-      new THREE.MeshLambertMaterial({ color: 0x4a5550 })
+    // Dark Felt Desk Pad
+    const pad = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.01, 0.65),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
     );
-    chair.position.set(0, 0.5, 0.6);
-    chair.castShadow = true;
+    pad.position.set(0, 0.945, 0.08);
+    group.add(pad);
+
+    // Mechanical Keyboard & Mouse
+    const kb = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.02, 0.18),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 })
+    );
+    kb.position.set(-0.1, 0.955, 0.15);
+    group.add(kb);
+
+    const mouse = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.025, 0.12),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 })
+    );
+    mouse.position.set(0.35, 0.955, 0.15);
+    group.add(mouse);
+
+    // TRIPLE CURVED BLOOMBERG MONITORS
+    const monitorGroup = new THREE.Group();
+    monitorGroup.position.set(0, 0.94, -0.28);
+
+    // Center Monitor (Candlesticks)
+    const centerDisplay = new THREE.Mesh(
+      new THREE.BoxGeometry(1.05, 0.58, 0.03),
+      new THREE.MeshStandardMaterial({
+        map: generateCandleTexture(deptId, true),
+        emissive: 0x1e293b,
+        emissiveIntensity: 0.4,
+        roughness: 0.2
+      })
+    );
+    centerDisplay.position.set(0, 0.38, 0);
+    monitorGroup.add(centerDisplay);
+
+    // Left Monitor (Orderbook, angled 28 deg inward)
+    const leftDisplay = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 0.54, 0.03),
+      new THREE.MeshStandardMaterial({
+        map: generateOrderbookTexture(),
+        emissive: 0x1e293b,
+        emissiveIntensity: 0.4,
+        roughness: 0.2
+      })
+    );
+    leftDisplay.position.set(-0.92, 0.38, 0.12);
+    leftDisplay.rotation.y = 0.42;
+    monitorGroup.add(leftDisplay);
+
+    // Right Monitor (Analytics / News, angled 28 deg inward)
+    const rightDisplay = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 0.54, 0.03),
+      new THREE.MeshStandardMaterial({
+        map: generateCandleTexture("NEWS/FED", false),
+        emissive: 0x1e293b,
+        emissiveIntensity: 0.4,
+        roughness: 0.2
+      })
+    );
+    rightDisplay.position.set(0.92, 0.38, 0.12);
+    rightDisplay.rotation.y = -0.42;
+    monitorGroup.add(rightDisplay);
+
+    // Heavy-duty Dual-articulated Monitor Stand
+    const standMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3 });
+    const standPole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4), standMat);
+    standPole.position.set(0, 0.2, -0.05);
+    monitorGroup.add(standPole);
+
+    group.add(monitorGroup);
+
+    // Workstation Tower PC with tempered glass & subtle RGB fan
+    const pcCase = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.55, 0.52),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.8 })
+    );
+    pcCase.position.set(1.0, 0.28, -0.1);
+    pcCase.castShadow = true;
+    group.add(pcCase);
+
+    const rgbGlow = new THREE.Mesh(
+      new THREE.RingGeometry(0.04, 0.07, 16),
+      new THREE.MeshBasicMaterial({ color: 0x06b6d4 })
+    );
+    rgbGlow.position.set(0.87, 0.35, -0.1);
+    rgbGlow.rotation.y = -Math.PI / 2;
+    group.add(rgbGlow);
+
+    // Ceramic Coffee Mug
+    const mug = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.045, 0.04, 0.08, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 })
+    );
+    mug.position.set(-0.85, 0.98, 0.2);
+    group.add(mug);
+
+    // Ergonomic Chair behind desk
+    const chair = createErgonomicChair(0x334155, false);
+    chair.position.set(0, 0, 0.72);
     group.add(chair);
 
     scene.add(group);
+  }
+
+  function createOfficeWorker(dept, idx) {
+    const group = new THREE.Group();
+
+    // 1. Interactive Aura Ring under chair
+    const auraGeo = new THREE.RingGeometry(0.48, 0.56, 32);
+    const auraMat = new THREE.MeshBasicMaterial({
+      color: dept.color,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.75
+    });
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    aura.rotation.x = -Math.PI / 2;
+    aura.position.y = 0.03;
+    group.add(aura);
+
+    // 2. Body / Torso (Tailored clothing)
+    const torsoMat = new THREE.MeshStandardMaterial({ color: dept.color, roughness: 0.5 });
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.65, 12), torsoMat);
+    torso.position.y = 0.85;
+    torso.castShadow = true;
+    group.add(torso);
+
+    // White shirt collar
+    const collar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.14, 0.21, 0.08, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })
+    );
+    collar.position.y = 1.18;
+    group.add(collar);
+
+    // 3. Head & Skin
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdfc4, roughness: 0.5 });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), skinMat);
+    head.position.y = 1.38;
+    head.castShadow = true;
+    group.add(head);
+
+    // 4. Stylized Haircut
+    const hairColors = [0x261a14, 0x3d2b1f, 0x1f2937, 0x4a3b32, 0x1e1b18];
+    const hairMat = new THREE.MeshStandardMaterial({ color: hairColors[idx % hairColors.length], roughness: 0.8 });
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.25, 16, 16, 0, Math.PI * 2, 0, Math.PI / 1.7),
+      hairMat
+    );
+    hair.position.set(0, 1.42, -0.02);
+    group.add(hair);
+
+    // 5. Department Specific Accessories
+    if (dept.id === "tech" || dept.id === "trader") {
+      // Over-ear Headset with boom mic
+      const headsetMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.8 });
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.025, 8, 24, Math.PI), headsetMat);
+      band.position.set(0, 1.42, 0);
+      band.rotation.z = Math.PI;
+      group.add(band);
+
+      [-0.24, 0.24].forEach(ex => {
+        const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 12), headsetMat);
+        ear.position.set(ex, 1.38, 0);
+        ear.rotation.z = Math.PI / 2;
+        group.add(ear);
+      });
+    }
+
+    if (dept.id === "castle") {
+      // Gold tie
+      const tie = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 0.32, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.3 })
+      );
+      tie.position.set(0, 0.95, 0.21);
+      group.add(tie);
+    }
+
+    // 6. Arms and Hands positioned over keyboard (Active typing pose!)
+    const armMat = torsoMat;
+    [-0.24, 0.24].forEach(ax => {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.1), armMat);
+      arm.position.set(ax, 0.82, 0.16);
+      arm.rotation.x = 0.55;
+      group.add(arm);
+
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), skinMat);
+      hand.position.set(ax, 0.72, 0.34);
+      group.add(hand);
+    });
+
+    group.position.set(dept.pos[0], 0.1, dept.pos[2]);
+    scene.add(group);
+
+    officeWorkers.push({
+      group,
+      deptId: dept.id,
+      name: dept.name,
+      basePos: [dept.pos[0], 0.1, dept.pos[2]],
+      targetPos: null,
+      aura,
+      bobOffset: Math.random() * Math.PI * 2
+    });
+  }
+
+  function createServerRack(x, z, rot) {
+    const rack = new THREE.Group();
+    rack.position.set(x, 0.1, z);
+    rack.rotation.y = rot;
+
+    // 42U Server cabinet frame
+    const cabinet = new THREE.Mesh(
+      new THREE.BoxGeometry(1.1, 2.3, 0.85),
+      new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.4, metalness: 0.8 })
+    );
+    cabinet.position.y = 1.15;
+    cabinet.castShadow = true;
+    rack.add(cabinet);
+
+    // Front glass door
+    const glass = new THREE.Mesh(
+      new THREE.BoxGeometry(1.0, 2.1, 0.04),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.2, roughness: 0.1 })
+    );
+    glass.position.set(0, 1.15, 0.44);
+    rack.add(glass);
+
+    // Server blades & LED lights
+    for (let i = 0; i < 8; i++) {
+      const blade = new THREE.Mesh(
+        new THREE.BoxGeometry(0.95, 0.18, 0.7),
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 })
+      );
+      blade.position.set(0, 0.3 + i * 0.24, 0.04);
+      rack.add(blade);
+
+      const ledCol = (i % 2 === 0) ? 0x22c55e : 0x06b6d4;
+      const led = new THREE.Mesh(
+        new THREE.SphereGeometry(0.02, 6, 6),
+        new THREE.MeshBasicMaterial({ color: ledCol })
+      );
+      led.position.set(-0.35 + (i % 3) * 0.1, 0.3 + i * 0.24, 0.42);
+      rack.add(led);
+      serverRackLeds.push(led);
+    }
+
+    scene.add(rack);
   }
 
   function createWhiteboard(x, z, rot) {
@@ -1504,13 +2187,28 @@
     group.position.set(x, 0.1, z);
     group.rotation.y = rot;
 
-    const board = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 0.06), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-    board.position.y = 1.4;
+    const board = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 1.5, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3 })
+    );
+    board.position.y = 1.45;
+    board.castShadow = true;
     group.add(board);
 
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.5, 0.04), new THREE.MeshLambertMaterial({ color: 0xd8d8d8 }));
-    frame.position.y = 1.4;
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(2.48, 1.58, 0.04),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 })
+    );
+    frame.position.y = 1.45;
     group.add(frame);
+
+    // Marker tray
+    const tray = new THREE.Mesh(
+      new THREE.BoxGeometry(2.0, 0.04, 0.12),
+      new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.4 })
+    );
+    tray.position.set(0, 0.68, 0.06);
+    group.add(tray);
 
     scene.add(group);
   }
@@ -1519,23 +2217,31 @@
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
 
-    // Round conference table
-    const table = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.1, 16), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-    table.position.y = 0.85;
+    // Circular Debate Table
+    const table = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.8, 1.8, 0.1, 32),
+      new THREE.MeshStandardMaterial({ color: 0x242a35, roughness: 0.4 })
+    );
+    table.position.y = 0.88;
     table.castShadow = true;
     group.add(table);
 
-    const tableLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.85), new THREE.MeshLambertMaterial({ color: 0xd2d2d0 }));
-    tableLeg.position.y = 0.42;
-    group.add(tableLeg);
+    const chromeLeg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35, 0.35, 0.88, 16),
+      new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.2, metalness: 0.85 })
+    );
+    chromeLeg.position.y = 0.44;
+    group.add(chromeLeg);
 
-    // Bull Chair (Blue-green) vs Bear Chair (Terracotta)
-    const bullChair = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshLambertMaterial({ color: 0x80b1d3 }));
-    bullChair.position.set(-1.4, 0.5, 0);
+    // Bull (Emerald Green) vs Bear (Crimson Red) Debate Chairs
+    const bullChair = createErgonomicChair(0x15803d, false);
+    bullChair.position.set(-1.5, 0, 0);
+    bullChair.rotation.y = Math.PI / 2;
     group.add(bullChair);
 
-    const bearChair = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.5), new THREE.MeshLambertMaterial({ color: 0xfb8072 }));
-    bearChair.position.set(1.4, 0.5, 0);
+    const bearChair = createErgonomicChair(0x991b1b, false);
+    bearChair.position.set(1.5, 0, 0);
+    bearChair.rotation.y = -Math.PI / 2;
     group.add(bearChair);
 
     scene.add(group);
@@ -1545,99 +2251,105 @@
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
 
-    // Pastel Sofa
-    const sofa = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 1.1), new THREE.MeshLambertMaterial({ color: 0xfde2e4 }));
-    sofa.position.y = 0.45;
+    // Scandinavian Sofa in Slate Navy
+    const sofa = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.75, 1.1),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 })
+    );
+    sofa.position.y = 0.48;
+    sofa.castShadow = true;
     group.add(sofa);
 
-    // Coffee Table with tiny mug
-    const table = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.45), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-    table.position.set(0, 0.25, 1.1);
-    group.add(table);
+    const backrest = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.55, 0.28),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 })
+    );
+    backrest.position.set(0, 0.85, -0.42);
+    group.add(backrest);
+
+    // Modern Round Coffee Table with glass top
+    const tableBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.55, 0.55, 0.4, 16),
+      new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4 })
+    );
+    tableBase.position.set(0, 0.22, 1.2);
+    group.add(tableBase);
 
     scene.add(group);
   }
 
-  function createIndoorPlant(x, z) {
-    const group = new THREE.Group();
-    group.position.set(x, 0.1, z);
+  function createFicusPlant(x, z) {
+    const plant = new THREE.Group();
+    plant.position.set(x, 0.1, z);
 
-    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.25, 0.6, 8), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-    pot.position.y = 0.3;
-    group.add(pot);
+    // Modern Fluted Ceramic Pot
+    const pot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.38, 0.28, 0.72, 16),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
+    );
+    pot.position.y = 0.36;
+    pot.castShadow = true;
+    plant.add(pot);
 
-    const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 8), new THREE.MeshLambertMaterial({ color: 0x588157 }));
-    leaves.position.y = 0.85;
-    group.add(leaves);
+    // Deep Green Ficus Leaves Clusters
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x1e4620, roughness: 0.6 });
+    for (let l = 0; l < 5; l++) {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.32 + (l % 2) * 0.08, 10, 10), leafMat);
+      leaf.position.set(
+        Math.sin(l * 1.3) * 0.18,
+        0.8 + l * 0.24,
+        Math.cos(l * 1.3) * 0.18
+      );
+      leaf.scale.set(1.2, 0.7, 1.2);
+      leaf.castShadow = true;
+      plant.add(leaf);
+    }
 
-    scene.add(group);
+    scene.add(plant);
   }
 
-  function createWaterCooler(x, z) {
+  function createWaterBar(x, z) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
 
-    const base = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.1, 0.5), new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }));
-    base.position.y = 0.55;
-    group.add(base);
+    const cabinet = new THREE.Mesh(
+      new THREE.BoxGeometry(0.8, 1.0, 0.6),
+      new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4 })
+    );
+    cabinet.position.y = 0.5;
+    cabinet.castShadow = true;
+    group.add(cabinet);
 
-    const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.55, 8), new THREE.MeshLambertMaterial({ color: 0xa8dadc, transparent: true, opacity: 0.7 }));
-    bottle.position.y = 1.35;
-    group.add(bottle);
+    // Espresso Machine
+    const espresso = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.32, 0.32),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.8 })
+    );
+    espresso.position.set(0, 1.16, 0);
+    group.add(espresso);
 
     scene.add(group);
   }
 
   function createFilingCabinet(x, z) {
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 0.8), new THREE.MeshLambertMaterial({ color: 0xd9dcd6 }));
-    cab.position.set(x, 0.9, z);
+    const cab = new THREE.Mesh(
+      new THREE.BoxGeometry(1.1, 1.7, 0.75),
+      new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.3 })
+    );
+    cab.position.set(x, 0.95, z);
+    cab.castShadow = true;
     scene.add(cab);
   }
 
   function createBookshelf(x, z, rot) {
-    const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.0, 0.5), new THREE.MeshLambertMaterial({ color: 0xf5ede1 }));
-    shelf.position.set(x, 1.1, z);
+    const shelf = new THREE.Mesh(
+      new THREE.BoxGeometry(1.8, 2.2, 0.55),
+      new THREE.MeshStandardMaterial({ color: 0x3b2416, roughness: 0.6 })
+    );
+    shelf.position.set(x, 1.2, z);
+    shelf.rotation.y = rot;
+    shelf.castShadow = true;
     scene.add(shelf);
-  }
-
-  function createOfficeWorker(dept, idx) {
-    const group = new THREE.Group();
-    
-    // Torso / Suit in department color
-    const torso = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.22, 0.26, 0.65, 8),
-      new THREE.MeshLambertMaterial({ color: dept.color })
-    );
-    torso.position.y = 0.35;
-    group.add(torso);
-
-    // Head
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(0.28, 12, 12),
-      new THREE.MeshLambertMaterial({ color: 0xffe3d1 })
-    );
-    head.position.y = 0.82;
-    group.add(head);
-
-    // Hair / Hat (Pastel cap)
-    const hair = new THREE.Mesh(
-      new THREE.SphereGeometry(0.29, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-      new THREE.MeshLambertMaterial({ color: 0x4a3f35 })
-    );
-    hair.position.y = 0.85;
-    group.add(hair);
-
-    group.position.set(dept.pos[0] + 0.8, 0.1, dept.pos[2] + 0.8);
-    scene.add(group);
-
-    officeWorkers.push({
-      group,
-      deptId: dept.id,
-      name: dept.name,
-      basePos: [dept.pos[0] + 0.8, 0.1, dept.pos[2] + 0.8],
-      targetPos: null,
-      bobOffset: Math.random() * Math.PI * 2
-    });
   }
 
   // --- Dynamic Speech Bubbles Layer ---
@@ -1659,14 +2371,14 @@
     div.innerHTML = `<span class="bubble-tag">${dept.name}</span> <span>${text}</span>`;
     overlay.appendChild(div);
 
-    activeSpeechBubbles.push({
+    const bObj = {
       deptId,
-      worldPos: new THREE.Vector3(dept.pos[0], 3.8, dept.pos[2]),
       element: div,
-      createdAt: Date.now()
-    });
+      worldPos: new THREE.Vector3(dept.pos[0], 2.2, dept.pos[2])
+    };
+    activeSpeechBubbles.push(bObj);
+    updateSpeechBubblesPosition();
 
-    // Auto-dismiss after 10s
     setTimeout(() => {
       const idx = activeSpeechBubbles.findIndex(b => b.element === div);
       if (idx !== -1) {
@@ -1721,12 +2433,12 @@
   }
 
   function resetOfficeCamera() {
-    TWEEN_CAMERA(camera.position, { x: 24, y: 22, z: 28 }, controls.target, { x: 0, y: 1.2, z: 1 });
+    TWEEN_CAMERA(camera.position, { x: 26, y: 24, z: 30 }, controls.target, { x: 0, y: 1.2, z: 0.5 });
   }
 
   function focusExecutiveOffice() {
-    TWEEN_CAMERA(camera.position, { x: 0, y: 14, z: 16 }, controls.target, { x: 0, y: 2.2, z: 0 });
-    spawnSpeechBubble("castle", "Đang điều phối tổng quan chiến lược toàn sàn.", true);
+    TWEEN_CAMERA(camera.position, { x: 0, y: 12, z: 14 }, controls.target, { x: 0, y: 1.8, z: 0 });
+    spawnSpeechBubble("castle", "Đang chủ trì tổng thể chiến lược tại phòng họp điều hành.", true);
   }
 
   function focusDepartment(deptId) {
@@ -1735,7 +2447,7 @@
 
     TWEEN_CAMERA(
       camera.position,
-      { x: dept.pos[0] + 6, y: 9, z: dept.pos[2] + 9 },
+      { x: dept.pos[0] + 6.5, y: 8.5, z: dept.pos[2] + 8.5 },
       controls.target,
       { x: dept.pos[0], y: 1.2, z: dept.pos[2] }
     );
@@ -1745,19 +2457,19 @@
   }
 
   function triggerAgentMeeting() {
-    showToast("Đang mô phỏng: Các nhân viên di chuyển sang phòng họp thảo luận!");
-    officeWorkers.forEach(w => {
-      // Walk towards central debate arena or castle
-      w.targetPos = [
-        (Math.random() - 0.5) * 4,
-        0.1,
-        5 + Math.random() * 2
-      ];
+    showToast("Đang mô phỏng: Hội đồng tác tử tập hợp vào phòng họp điều hành!");
+    const boardroomSeats = [
+      [-1.6, 0.1, -0.6], [0, 0.1, -0.6], [1.6, 0.1, -0.6],
+      [-1.6, 0.1, 1.0], [0, 0.1, 1.0], [1.6, 0.1, 1.0], [0, 0.1, 0.2]
+    ];
+    officeWorkers.forEach((w, idx) => {
+      const s = boardroomSeats[idx % boardroomSeats.length];
+      w.targetPos = [s[0], s[1], s[2]];
     });
 
     setTimeout(() => {
-      spawnSpeechBubble("bull", "Phe Mua đề xuất giải ngân 20% vốn tại hỗ trợ.");
-      spawnSpeechBubble("bear", "Phe Bán yêu cầu đặt Stop Loss cách cản 2.5%.");
+      spawnSpeechBubble("bull", "Phe Mua đề xuất giải ngân tại vùng hỗ trợ SMA200.");
+      spawnSpeechBubble("bear", "Phe Bán yêu cầu chốt chặn Stop Loss nghiêm ngặt.");
     }, 800);
   }
 
@@ -1790,17 +2502,29 @@
     requestAnimationFrame(animate);
     controls.update();
 
-    const now = Date.now() * 0.004;
-    officeWorkers.forEach(w => {
-      // Subtle natural breathing/bobbing
-      w.group.position.y = 0.1 + Math.sin(now + w.bobOffset) * 0.04;
+    const now = Date.now() * 0.003;
 
-      // Walking interpolation
+    // Pulse server rack LEDs
+    serverRackLeds.forEach((led, i) => {
+      led.scale.setScalar(0.8 + Math.sin(now * 3 + i) * 0.3);
+    });
+
+    // Workers animation
+    officeWorkers.forEach(w => {
+      // Natural idle breathing bob
+      w.group.position.y = 0.1 + Math.sin(now + w.bobOffset) * 0.035;
+
+      // Aura pulse
+      if (w.aura) {
+        w.aura.material.opacity = 0.4 + Math.sin(now * 2 + w.bobOffset) * 0.3;
+      }
+
+      // Walking interpolation towards meeting
       if (w.targetPos) {
-        w.group.position.x += (w.targetPos[0] - w.group.position.x) * 0.035;
-        w.group.position.z += (w.targetPos[2] - w.group.position.z) * 0.035;
+        w.group.position.x += (w.targetPos[0] - w.group.position.x) * 0.04;
+        w.group.position.z += (w.targetPos[2] - w.group.position.z) * 0.04;
         const d = Math.hypot(w.targetPos[0] - w.group.position.x, w.targetPos[2] - w.group.position.z);
-        if (d < 0.2) w.targetPos = null;
+        if (d < 0.15) w.targetPos = null;
       }
     });
 

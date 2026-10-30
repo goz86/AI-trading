@@ -5,6 +5,10 @@ from datetime import UTC, datetime
 
 import yfinance as yf
 from dateutil.relativedelta import relativedelta
+import email.utils
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
 
 from tradingagents.dataflows.config import get_config
 from tradingagents.dataflows.date_window import coverage_gap, in_window
@@ -72,6 +76,58 @@ def _search_news(canonical: str, limit: int) -> tuple[list, bool]:
     return tagged, knows or bool(search.news)
 
 
+
+def _fetch_live_rss_news(query: str, limit: int = 10) -> list[dict]:
+    """Fetch live real-time breaking news from Google News RSS and CoinTelegraph."""
+    articles = []
+    encoded_query = urllib.parse.quote_plus(query)
+    urls = [
+        f"https://news.google.com/rss/search?q={encoded_query}+when:7d&hl=en-US&gl=US&ceid=US:en",
+    ]
+    if any(k in query.lower() for k in ["btc", "bitcoin", "crypto", "eth", "ethereum", "sol"]):
+        urls.append("https://cointelegraph.com/rss")
+
+    for url in urls:
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                root = ET.fromstring(resp.read())
+                for item in root.findall(".//item"):
+                    title = (item.findtext("title") or "").strip()
+                    link = (item.findtext("link") or "").strip()
+                    desc = (item.findtext("description") or "").strip()
+                    pub_date_str = item.findtext("pubDate") or ""
+                    pub_dt = None
+                    if pub_date_str:
+                        with contextlib.suppress(Exception):
+                            pub_dt = email.utils.parsedate_to_datetime(pub_date_str)
+                            if pub_dt and pub_dt.tzinfo is None:
+                                pub_dt = pub_dt.replace(tzinfo=UTC)
+
+                    source = "Live News"
+                    source_elem = item.find("source")
+                    if source_elem is not None and source_elem.text:
+                        source = source_elem.text
+                    elif "cointelegraph" in url:
+                        source = "CoinTelegraph"
+
+                    if title:
+                        articles.append({
+                            "title": title,
+                            "summary": desc[:280] if desc and "<" not in desc else "",
+                            "publisher": source,
+                            "link": link,
+                            "pub_date": pub_dt,
+                        })
+                    if len(articles) >= limit * 2:
+                        break
+        except Exception:
+            continue
+    return articles
+
 def _format_articles(articles: list[dict]) -> str:
     out = ""
     for data in articles:
@@ -120,6 +176,18 @@ def get_news_yfinance(
     end_dt = datetime.strptime(end_date, "%Y-%m-%d")
     # Keep only articles within the requested window (look-ahead safe).
     in_range = [a for a in articles if in_window(a["pub_date"], start_dt, end_dt)]
+
+    # Enrich with live breaking RSS news if results are sparse or for crypto assets
+    if len(in_range) < 5 or any(k in canonical.upper() for k in ["BTC", "ETH", "SOL", "CRYPTO"]):
+        q = f"{canonical} Bitcoin Crypto" if "BTC" in canonical.upper() else f"{canonical} stock market news"
+        live_arts = _fetch_live_rss_news(q, limit=article_limit)
+        seen = {a["title"].lower().strip() for a in in_range}
+        for a in live_arts:
+            if a["title"].lower().strip() not in seen:
+                if in_window(a["pub_date"], start_dt, end_dt):
+                    seen.add(a["title"].lower().strip())
+                    in_range.append(a)
+
     if in_range:
         return f"## {ticker}{resolved} News, from {start_date} to {end_date}:\n\n{_format_articles(in_range)}"
 
@@ -187,6 +255,18 @@ def get_global_news_yfinance(
 
         if len(in_window_news) >= limit:
             break
+
+    # Enrich with live breaking macroeconomic and crypto news
+    if len(in_window_news) < limit:
+        extra_rss = _fetch_live_rss_news("Federal Reserve interest rates inflation economic outlook", limit=5)
+        extra_rss += _fetch_live_rss_news("Bitcoin cryptocurrency global markets financial news", limit=5)
+        for a in extra_rss:
+            if a["title"] and a["title"] not in seen_titles:
+                if in_window(a["pub_date"], start_dt, curr_dt):
+                    seen_titles.add(a["title"])
+                    in_window_news.append(a)
+            if len(in_window_news) >= limit:
+                break
 
     news_str = _format_articles(in_window_news[:limit])
 
