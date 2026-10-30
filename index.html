@@ -2359,7 +2359,7 @@
   function createWhiteboard(x, z, rot) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
-    group.userData = { deptId: deptId };
+    group.userData = { deptId: 'tech' };
     group.rotation.y = rot;
 
     const board = new THREE.Mesh(
@@ -2391,7 +2391,7 @@
   function createDebateArena(x, z) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
-    group.userData = { deptId: deptId };
+    group.userData = { deptId: 'bull' };
 
     // Circular Debate Table
     const table = new THREE.Mesh(
@@ -2426,7 +2426,7 @@
   function createLoungeArea(x, z) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
-    group.userData = { deptId: deptId };
+    group.userData = { deptId: 'social' };
 
     // Scandinavian Sofa in Slate Navy
     const sofa = new THREE.Mesh(
