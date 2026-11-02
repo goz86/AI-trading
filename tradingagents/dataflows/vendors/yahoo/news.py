@@ -91,11 +91,11 @@ def _fetch_live_rss_news(query: str, limit: int = 12, ticker: str = "") -> list[
         q_enc = urllib.parse.quote_plus(f"{query} crypto")
         urls.append(("Reuters/Bloomberg", f"https://news.google.com/rss/search?q={q_enc}+site:reuters.com+OR+site:bloomberg.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
     elif any(k in t_upper for k in ["XAU", "GOLD", "GC=F", "SILVER", "XAG", "SI=F"]):
-        urls.append(("Kitco/Reuters Gold", f"https://news.google.com/rss/search?q=gold+price+OR+XAU+site:reuters.com+OR+site:investing.com+OR+site:kitco.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
-        urls.append(("Precious Metals Live", f"https://news.google.com/rss/search?q=gold+silver+precious+metals+when:7d&hl=en-US&gl=US&ceid=US:en"))
+        urls.append(("Kitco/Reuters Gold", "https://news.google.com/rss/search?q=gold+price+OR+XAU+site:reuters.com+OR+site:investing.com+OR+site:kitco.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
+        urls.append(("Precious Metals Live", "https://news.google.com/rss/search?q=gold+silver+precious+metals+when:7d&hl=en-US&gl=US&ceid=US:en"))
     elif any(k in t_upper for k in ["WTI", "OIL", "CL=F", "CRUDE"]):
         urls.append(("OilPrice", "https://oilprice.com/rss/main"))
-        urls.append(("Reuters Energy", f"https://news.google.com/rss/search?q=crude+oil+price+WTI+site:reuters.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
+        urls.append(("Reuters Energy", "https://news.google.com/rss/search?q=crude+oil+price+WTI+site:reuters.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
     else:
         q_enc = urllib.parse.quote_plus(f"{query} stock market")
         urls.append(("Reuters/CNBC", f"https://news.google.com/rss/search?q={q_enc}+site:reuters.com+OR+site:cnbc.com+OR+site:marketwatch.com+when:7d&hl=en-US&gl=US&ceid=US:en"))

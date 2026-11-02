@@ -129,7 +129,7 @@ def build_verified_market_snapshot(
             s2 = pivot - (h_val - l_val)
             h_20d = float(recent["High"].max()) if "High" in recent else h_val
             l_20d = float(recent["Low"].min()) if "Low" in recent else l_val
-            
+
             lines += [
                 "",
                 "### Verified Mathematical Pivot Points & Swing Levels",

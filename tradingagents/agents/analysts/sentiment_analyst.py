@@ -1,46 +1,3 @@
-import urllib.request, json
-import yfinance as yf
-
-def fetch_sentiment_gauges(ticker: str) -> str:
-    """Fetch live macro/institutional sentiment benchmarks (Alternative.me F&G, CBOE VIX, DXY)."""
-    lines = []
-    # 1. Alternative.me Fear & Greed Index
-    try:
-        req = urllib.request.Request("https://api.alternative.me/fng/?limit=1", headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            data = json.loads(resp.read().decode())
-            if "data" in data and len(data["data"]) > 0:
-                item = data["data"][0]
-                val = item.get("value", "N/A")
-                classification = item.get("value_classification", "Neutral")
-                lines.append(f"- **Market & Crypto Fear & Greed Index**: **{val}/100** ({classification}) [Source: Alternative.me Multi-Factor Benchmark]")
-    except Exception:
-        lines.append("- **Market & Crypto Fear & Greed Index**: 37/100 (Fear) [Source: Alternative.me]")
-
-    # 2. CBOE VIX Volatility Index
-    try:
-        t_vix = yf.Ticker("^VIX")
-        df_vix = t_vix.history(period="5d", interval="1d")
-        if not df_vix.empty:
-            vix_val = round(float(df_vix["Close"].iloc[-1]), 2)
-            vix_desc = "Low Volatility / Complacency" if vix_val < 15 else ("Moderate / Normal Risk" if vix_val < 25 else "High Fear / Risk-off Panic")
-            lines.append(f"- **CBOE VIX Volatility Index (Phố Wall Fear Gauge)**: **{vix_val}** ({vix_desc}) [Source: CBOE via Yahoo]")
-    except Exception:
-        pass
-
-    # 3. US Dollar Index (DXY)
-    try:
-        t_dxy = yf.Ticker("DX-Y.NYB")
-        df_dxy = t_dxy.history(period="5d", interval="1d")
-        if not df_dxy.empty:
-            dxy_val = round(float(df_dxy["Close"].iloc[-1]), 2)
-            dxy_desc = "Strong Dollar (Tightening liquidity)" if dxy_val > 103 else ("Weak Dollar (Favorable for Risk/Gold)" if dxy_val < 100 else "Stable Liquidity")
-            lines.append(f"- **US Dollar Index (DXY)**: **{dxy_val}** ({dxy_desc}) [Source: ICE via Yahoo]")
-    except Exception:
-        pass
-
-    return "\n".join(lines) if lines else "Macro benchmarks: Neutral"
-
 """Sentiment analyst: one sentiment report from three sources.
 
 The node fetches its sources before calling the model and puts them in the
@@ -81,6 +38,7 @@ from tradingagents.dataflows.vendors.reddit import (
     subreddits_for,
 )
 from tradingagents.dataflows.vendors.stocktwits import fetch_stocktwits_messages
+from tradingagents.dataflows.vendors.yahoo.market import fetch_sentiment_gauges
 
 
 def _seven_days_back(trade_date: str) -> str:
