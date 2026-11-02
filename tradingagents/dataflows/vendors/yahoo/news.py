@@ -77,26 +77,48 @@ def _search_news(canonical: str, limit: int) -> tuple[list, bool]:
 
 
 
-def _fetch_live_rss_news(query: str, limit: int = 10) -> list[dict]:
-    """Fetch live real-time breaking news from Google News RSS and CoinTelegraph."""
+def _fetch_live_rss_news(query: str, limit: int = 12, ticker: str = "") -> list[dict]:
+    """Fetch live real-time breaking news from top-tier institutional financial & crypto publications."""
     articles = []
-    encoded_query = urllib.parse.quote_plus(query)
-    urls = [
-        f"https://news.google.com/rss/search?q={encoded_query}+when:7d&hl=en-US&gl=US&ceid=US:en",
-    ]
-    if any(k in query.lower() for k in ["btc", "bitcoin", "crypto", "eth", "ethereum", "sol"]):
-        urls.append("https://cointelegraph.com/rss")
+    t_upper = (ticker or query).upper()
+    urls = []
 
-    for url in urls:
+    # 1. Specialized High-Reputation Feeds based on asset class
+    if any(k in t_upper for k in ["BTC", "ETH", "SOL", "BNB", "XRP", "CRYPTO"]):
+        urls.append(("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"))
+        urls.append(("CoinTelegraph", "https://cointelegraph.com/rss"))
+        urls.append(("Decrypt", "https://decrypt.co/feed"))
+        q_enc = urllib.parse.quote_plus(f"{query} crypto")
+        urls.append(("Reuters/Bloomberg", f"https://news.google.com/rss/search?q={q_enc}+site:reuters.com+OR+site:bloomberg.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
+    elif any(k in t_upper for k in ["XAU", "GOLD", "GC=F", "SILVER", "XAG", "SI=F"]):
+        urls.append(("Kitco/Reuters Gold", f"https://news.google.com/rss/search?q=gold+price+OR+XAU+site:reuters.com+OR+site:investing.com+OR+site:kitco.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
+        urls.append(("Precious Metals Live", f"https://news.google.com/rss/search?q=gold+silver+precious+metals+when:7d&hl=en-US&gl=US&ceid=US:en"))
+    elif any(k in t_upper for k in ["WTI", "OIL", "CL=F", "CRUDE"]):
+        urls.append(("OilPrice", "https://oilprice.com/rss/main"))
+        urls.append(("Reuters Energy", f"https://news.google.com/rss/search?q=crude+oil+price+WTI+site:reuters.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
+    else:
+        q_enc = urllib.parse.quote_plus(f"{query} stock market")
+        urls.append(("Reuters/CNBC", f"https://news.google.com/rss/search?q={q_enc}+site:reuters.com+OR+site:cnbc.com+OR+site:marketwatch.com+when:7d&hl=en-US&gl=US&ceid=US:en"))
+
+    # General curated market search
+    gen_q = urllib.parse.quote_plus(f"{query} financial market news")
+    urls.append(("Google Markets", f"https://news.google.com/rss/search?q={gen_q}+when:7d&hl=en-US&gl=US&ceid=US:en"))
+
+    seen_titles = set()
+    for source_label, url in urls:
         try:
             req = urllib.request.Request(
                 url,
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
             )
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=4) as resp:
                 root = ET.fromstring(resp.read())
                 for item in root.findall(".//item"):
                     title = (item.findtext("title") or "").strip()
+                    if not title or title.lower() in seen_titles:
+                        continue
+                    seen_titles.add(title.lower())
+
                     link = (item.findtext("link") or "").strip()
                     desc = (item.findtext("description") or "").strip()
                     pub_date_str = item.findtext("pubDate") or ""
@@ -107,26 +129,27 @@ def _fetch_live_rss_news(query: str, limit: int = 10) -> list[dict]:
                             if pub_dt and pub_dt.tzinfo is None:
                                 pub_dt = pub_dt.replace(tzinfo=UTC)
 
-                    source = "Live News"
+                    source = source_label
                     source_elem = item.find("source")
                     if source_elem is not None and source_elem.text:
                         source = source_elem.text
-                    elif "cointelegraph" in url:
-                        source = "CoinTelegraph"
 
-                    if title:
-                        articles.append({
-                            "title": title,
-                            "summary": desc[:280] if desc and "<" not in desc else "",
-                            "publisher": source,
-                            "link": link,
-                            "pub_date": pub_dt,
-                        })
+                    clean_desc = desc
+                    if "<" in clean_desc:
+                        clean_desc = " ".join([p.strip() for p in clean_desc.split("<") if not p.startswith("/") and len(p) > 2])
+
+                    articles.append({
+                        "title": title,
+                        "summary": clean_desc[:260].strip(),
+                        "publisher": source,
+                        "link": link,
+                        "pub_date": pub_dt,
+                    })
                     if len(articles) >= limit * 2:
                         break
         except Exception:
             continue
-    return articles
+    return articles[:limit * 2]
 
 def _format_articles(articles: list[dict]) -> str:
     out = ""
@@ -177,15 +200,13 @@ def get_news_yfinance(
     # Keep only articles within the requested window (look-ahead safe).
     in_range = [a for a in articles if in_window(a["pub_date"], start_dt, end_dt)]
 
-    # Enrich with live breaking RSS news if results are sparse or for crypto assets
-    if len(in_range) < 5 or any(k in canonical.upper() for k in ["BTC", "ETH", "SOL", "CRYPTO"]):
-        q = f"{canonical} Bitcoin Crypto" if "BTC" in canonical.upper() else f"{canonical} stock market news"
-        live_arts = _fetch_live_rss_news(q, limit=article_limit)
-        seen = {a["title"].lower().strip() for a in in_range}
-        for a in live_arts:
-            if a["title"].lower().strip() not in seen and in_window(a["pub_date"], start_dt, end_dt):
-                    seen.add(a["title"].lower().strip())
-                    in_range.append(a)
+    # Always enrich with high-reputation multi-source feeds (CoinDesk, CoinTelegraph, Reuters, CNBC, Kitco, Decrypt, OilPrice)
+    live_arts = _fetch_live_rss_news(canonical, limit=article_limit, ticker=canonical)
+    seen = {a["title"].lower().strip() for a in in_range}
+    for a in live_arts:
+        if a["title"].lower().strip() not in seen and in_window(a["pub_date"], start_dt, end_dt):
+            seen.add(a["title"].lower().strip())
+            in_range.append(a)
 
     if in_range:
         return f"## {ticker}{resolved} News, from {start_date} to {end_date}:\n\n{_format_articles(in_range)}"

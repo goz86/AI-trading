@@ -116,6 +116,37 @@ def build_verified_market_snapshot(
     for _, row in recent.iterrows():
         lines.append(f"| {_fmt(row['Date'])} | {_fmt(row.get('Close'))} |")
 
+    # Verified Mathematical Floor Pivot Points & 20-day Swing Range
+    try:
+        h_val = float(latest.get("High", 0) or 0)
+        l_val = float(latest.get("Low", 0) or 0)
+        c_val = float(latest.get("Close", 0) or 0)
+        if h_val and l_val and c_val:
+            pivot = (h_val + l_val + c_val) / 3.0
+            r1 = 2.0 * pivot - l_val
+            s1 = 2.0 * pivot - h_val
+            r2 = pivot + (h_val - l_val)
+            s2 = pivot - (h_val - l_val)
+            h_20d = float(recent["High"].max()) if "High" in recent else h_val
+            l_20d = float(recent["Low"].min()) if "Low" in recent else l_val
+            
+            lines += [
+                "",
+                "### Verified Mathematical Pivot Points & Swing Levels",
+                "",
+                "| Key Level | Value | Role |",
+                "|---|---:|---|",
+                f"| Pivot Point (P) | {_fmt(pivot)} | Neutral equilibrium baseline |",
+                f"| Resistance 1 (R1) | {_fmt(r1)} | Immediate upside resistance |",
+                f"| Resistance 2 (R2) | {_fmt(r2)} | Secondary breakout ceiling |",
+                f"| Support 1 (S1) | {_fmt(s1)} | Immediate downside support |",
+                f"| Support 2 (S2) | {_fmt(s2)} | Secondary breakdown floor |",
+                f"| 20-Day Swing High | {_fmt(h_20d)} | Multi-week swing resistance |",
+                f"| 20-Day Swing Low | {_fmt(l_20d)} | Multi-week swing support |",
+            ]
+    except Exception:
+        pass
+
     lines += [
         "",
         "Use this snapshot as the source of truth for exact OHLCV, price-level, "

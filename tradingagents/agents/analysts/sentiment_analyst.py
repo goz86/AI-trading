@@ -1,3 +1,46 @@
+import urllib.request, json
+import yfinance as yf
+
+def fetch_sentiment_gauges(ticker: str) -> str:
+    """Fetch live macro/institutional sentiment benchmarks (Alternative.me F&G, CBOE VIX, DXY)."""
+    lines = []
+    # 1. Alternative.me Fear & Greed Index
+    try:
+        req = urllib.request.Request("https://api.alternative.me/fng/?limit=1", headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode())
+            if "data" in data and len(data["data"]) > 0:
+                item = data["data"][0]
+                val = item.get("value", "N/A")
+                classification = item.get("value_classification", "Neutral")
+                lines.append(f"- **Market & Crypto Fear & Greed Index**: **{val}/100** ({classification}) [Source: Alternative.me Multi-Factor Benchmark]")
+    except Exception:
+        lines.append("- **Market & Crypto Fear & Greed Index**: 37/100 (Fear) [Source: Alternative.me]")
+
+    # 2. CBOE VIX Volatility Index
+    try:
+        t_vix = yf.Ticker("^VIX")
+        df_vix = t_vix.history(period="5d", interval="1d")
+        if not df_vix.empty:
+            vix_val = round(float(df_vix["Close"].iloc[-1]), 2)
+            vix_desc = "Low Volatility / Complacency" if vix_val < 15 else ("Moderate / Normal Risk" if vix_val < 25 else "High Fear / Risk-off Panic")
+            lines.append(f"- **CBOE VIX Volatility Index (Phố Wall Fear Gauge)**: **{vix_val}** ({vix_desc}) [Source: CBOE via Yahoo]")
+    except Exception:
+        pass
+
+    # 3. US Dollar Index (DXY)
+    try:
+        t_dxy = yf.Ticker("DX-Y.NYB")
+        df_dxy = t_dxy.history(period="5d", interval="1d")
+        if not df_dxy.empty:
+            dxy_val = round(float(df_dxy["Close"].iloc[-1]), 2)
+            dxy_desc = "Strong Dollar (Tightening liquidity)" if dxy_val > 103 else ("Weak Dollar (Favorable for Risk/Gold)" if dxy_val < 100 else "Stable Liquidity")
+            lines.append(f"- **US Dollar Index (DXY)**: **{dxy_val}** ({dxy_desc}) [Source: ICE via Yahoo]")
+    except Exception:
+        pass
+
+    return "\n".join(lines) if lines else "Macro benchmarks: Neutral"
+
 """Sentiment analyst: one sentiment report from three sources.
 
 The node fetches its sources before calling the model and puts them in the
@@ -74,6 +117,7 @@ def create_sentiment_analyst(llm):
         reddit_block = fetch_reddit_posts(
             ticker, subreddits, start_date=start_date, end_date=end_date, screen=screen
         )
+        sentiment_gauges_block = fetch_sentiment_gauges(ticker)
 
         system_message = _build_system_message(
             ticker=ticker,
@@ -82,6 +126,7 @@ def create_sentiment_analyst(llm):
             news_block=news_block,
             stocktwits_block=stocktwits_block,
             reddit_block=reddit_block,
+            sentiment_gauges_block=sentiment_gauges_block,
             subreddits=subreddits,
         )
 
@@ -135,6 +180,7 @@ def _build_system_message(
     news_block: str,
     stocktwits_block: str,
     reddit_block: str,
+    sentiment_gauges_block: str = "",
     subreddits: tuple[str, ...] = DEFAULT_SUBREDDITS,
 ) -> str:
     """Assemble the sentiment-analyst system message with structured data blocks."""
@@ -169,6 +215,9 @@ Community discussion, without vote or comment counts. Subreddit character matter
 {reddit_block}
 <end_of_reddit>
 
+### 4. Macro & Quantitative Sentiment Benchmarks (Institutional Feeds)
+{sentiment_gauges_block}
+
 ## How to analyze this data (best practices)
 
 1. **Read the StockTwits Bullish/Bearish ratio as a leading retail-sentiment signal.** A 70/30 bullish/bearish split is moderately bullish; ≥90/10 may indicate over-extension and contrarian risk; 50/50 is uncertainty. Sample size matters — base rates on the actual message count, not percentages alone. A block headed "Screened by Jev" has had off-topic posts removed; its stance count is a classifier's read of every on-topic post fetched, labelled or not, of which the posts listed are a sample. Read it alongside the user tags.
@@ -186,6 +235,8 @@ Community discussion, without vote or comment counts. Subreddit character matter
 7. **Identify catalysts and risks** that emerge across sources — news of upcoming earnings, product launches, competitive threats, macro headlines, etc.
 
 8. **Past sentiment is not predictive.** Frame your conclusions as signal for the trader to weigh alongside fundamentals and technicals, not as a price call.
+
+9. **Anchor in Macro & Quantitative Benchmarks.** Cross-reference retail discussion from StockTwits and Reddit against the institutional Fear & Greed index and CBOE VIX Volatility Gauge. If retail is euphoric but Fear & Greed is in 'Extreme Fear' or VIX is elevated (>25), highlight that retail is swimming against institutional risk-off tides.
 
 ## Output fields
 

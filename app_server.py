@@ -43,6 +43,22 @@ WEB_DIR = ROOT_DIR / "web"
 WEB_DIR.mkdir(exist_ok=True)
 
 # Vietnamese translation for LangGraph agent nodes
+DEPT_NODE_MAP = {
+    "Market Analyst": "tech",
+    "Social Analyst": "social",
+    "Sentiment Analyst": "social",
+    "News Analyst": "news",
+    "Fundamentals Analyst": "fundamentals",
+    "Bull Researcher": "bull",
+    "Bear Researcher": "bear",
+    "Research Manager": "castle",
+    "Trader": "trader",
+    "Portfolio Manager": "castle",
+    "Aggressive Analyst": "bear",
+    "Conservative Analyst": "bear",
+    "Neutral Analyst": "bull",
+}
+
 STEP_NAMES_VI = {
     "Khởi động": "Khởi động hệ thống",
     "Market Analyst": "Phòng Kỹ thuật (Đọc nến & Chỉ báo)",
@@ -70,6 +86,7 @@ EXECUTION_STATE = {
     "provider": "",
     "current_step": "Sẵn sàng",
     "current_step_vi": "Hệ thống sẵn sàng",
+    "active_dept_id": "",
     "node_history": [],
     "ai_calls": 0,
     "start_time": 0,
@@ -152,11 +169,11 @@ def save_user_config(cfg: dict):
 def clean_symbol(symbol: str) -> str:
     s = symbol.strip().upper().replace("/", "-")
     if s in ("XAU", "GOLD", "VANG", "XAUUSD", "XAU-USD", "GC=F", "GC_F"):
-        return "XAU-USD"
+        return "XAU"
     if s in ("XAG", "SILVER", "XAGUSD", "XAG-USD", "SI=F", "SI_F"):
-        return "XAG-USD"
+        return "XAG"
     if s in ("CL=F", "CL_F", "USOIL", "WTI", "OIL", "DAU"):
-        return "CL=F"
+        return "WTI"
     return "".join(ch if ch.isalnum() or ch in "-_.=" else "_" for ch in s)
 
 
@@ -618,6 +635,7 @@ def run_analysis_worker(params: dict):
             "provider": provider,
             "current_step": "Khởi tạo môi trường",
             "current_step_vi": "Khởi tạo môi trường AI và kiểm tra tham số",
+            "active_dept_id": "castle",
             "node_history": ["Khởi động"],
             "ai_calls": 0,
             "start_time": time.time(),
@@ -665,6 +683,7 @@ def run_analysis_worker(params: dict):
                     with STATE_LOCK:
                         EXECUTION_STATE["current_step"] = node or "AI Inference"
                         EXECUTION_STATE["current_step_vi"] = vi_name
+                        EXECUTION_STATE["active_dept_id"] = DEPT_NODE_MAP.get(node, "castle" if "Giám đốc" in vi_name or "Trưởng phòng" in vi_name else "")
                         EXECUTION_STATE["ai_calls"] += 1
                         if vi_name not in EXECUTION_STATE["node_history"]:
                             EXECUTION_STATE["node_history"].append(vi_name)
@@ -712,7 +731,7 @@ def run_analysis_worker(params: dict):
         cfg["output_language"] = "English"
 
         is_crypto = symbol.endswith("-USD") and not symbol.startswith("XAU") and not symbol.startswith("XAG")
-        is_commodity = symbol.endswith("=F") or symbol.startswith("^") or symbol.startswith("XAU") or symbol.startswith("XAG") or symbol.startswith("CL")
+        is_commodity = symbol.endswith("=F") or symbol.startswith("^") or symbol.startswith("XAU") or symbol.startswith("XAG") or symbol.startswith("CL") or symbol.startswith("WTI")
         selected_analysts = list(analysts)
         if not is_crypto and not is_commodity and "fundamentals" not in selected_analysts:
             selected_analysts.append("fundamentals")
@@ -865,6 +884,7 @@ def run_analysis_worker(params: dict):
                 "is_running": False,
                 "current_step": "Hoàn tất",
                 "current_step_vi": "Phân tích hoàn tất thành công!",
+                "active_dept_id": "castle",
                 "progress_pct": 100,
                 "result": structured_report
             })
@@ -891,13 +911,156 @@ def run_analysis_worker(params: dict):
             })
 
 
+
+# --- Live Fear & Greed, Paper Trading & Market Screener Extensions ---
+PAPER_TRADES_FILE = ROOT_DIR / "paper_trades.json"
+FG_CACHE = {}
+
+def get_fear_and_greed_data():
+    now = time.time()
+    if "data" in FG_CACHE and (now - FG_CACHE.get("time", 0) < 900):
+        return FG_CACHE["data"]
+    try:
+        url = "https://api.alternative.me/fng/?limit=1"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode())
+            fng = data["data"][0]
+            res = {
+                "ok": True,
+                "value": int(fng.get("value", 50)),
+                "classification": fng.get("value_classification", "Neutral"),
+                "timestamp": fng.get("timestamp")
+            }
+            FG_CACHE["data"] = res
+            FG_CACHE["time"] = now
+            return res
+    except Exception as e:
+        return {"ok": False, "value": 50, "classification": "Neutral", "error": str(e)}
+
+def load_paper_trades():
+    if not PAPER_TRADES_FILE.exists():
+        return []
+    try:
+        return json.loads(PAPER_TRADES_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+def save_paper_trades(trades):
+    PAPER_TRADES_FILE.write_text(json.dumps(trades, indent=2, ensure_ascii=False), encoding="utf-8")
+
+def handle_paper_trade(payload: dict) -> dict:
+    action = payload.get("action", "open")
+    trade_info = payload.get("trade", {})
+    trades = load_paper_trades()
+
+    if action == "open":
+        if not trade_info.get("id"):
+            trade_info["id"] = f"pt_{int(time.time()*1000)}"
+        if "created_at" not in trade_info:
+            trade_info["created_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        trade_info["status"] = "OPEN"
+        trades.insert(0, trade_info)
+        save_paper_trades(trades)
+        return {"ok": True, "message": f"Đã ghi nhận vị thế ảo {trade_info.get('symbol')}!", "trade": trade_info}
+
+    elif action == "close":
+        tid = trade_info.get("id")
+        for t in trades:
+            if t.get("id") == tid:
+                t["status"] = "CLOSED"
+                t["closed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                break
+        save_paper_trades(trades)
+        return {"ok": True, "message": "Đã chốt vị thế ảo!"}
+
+    elif action == "delete":
+        tid = trade_info.get("id")
+        trades = [t for t in trades if t.get("id") != tid]
+        save_paper_trades(trades)
+        return {"ok": True, "message": "Đã xóa vị thế ảo!"}
+
+    return {"ok": False, "error": f"Hành động không xác định: {action}"}
+
+def quick_screen_assets(category="crypto"):
+    import yfinance as yf
+    symbols_map = {
+        "crypto": [
+            {"yf": "BTC-USD", "sym": "BTC-USD", "name": "Bitcoin"},
+            {"yf": "ETH-USD", "sym": "ETH-USD", "name": "Ethereum"},
+            {"yf": "SOL-USD", "sym": "SOL-USD", "name": "Solana"},
+            {"yf": "BNB-USD", "sym": "BNB-USD", "name": "BNB"},
+            {"yf": "XRP-USD", "sym": "XRP-USD", "name": "Ripple"}
+        ],
+        "stocks": [
+            {"yf": "NVDA", "sym": "NVDA", "name": "Nvidia"},
+            {"yf": "AAPL", "sym": "AAPL", "name": "Apple"},
+            {"yf": "TSLA", "sym": "TSLA", "name": "Tesla"},
+            {"yf": "MSFT", "sym": "MSFT", "name": "Microsoft"},
+            {"yf": "GOOGL", "sym": "GOOGL", "name": "Google"}
+        ],
+        "commodities": [
+            {"yf": "GC=F", "sym": "XAU", "name": "Vàng Thế Giới (XAU)"},
+            {"yf": "SI=F", "sym": "XAG", "name": "Bạc (XAG)"},
+            {"yf": "CL=F", "sym": "WTI", "name": "Dầu Thô (WTI)"}
+        ]
+    }
+    items = symbols_map.get(category, symbols_map["crypto"])
+    results = []
+    
+    for item in items:
+        yf_sym = item["yf"]
+        disp_sym = item["sym"]
+        disp_name = item.get("name", disp_sym)
+        try:
+            t = yf.Ticker(yf_sym)
+            df = t.history(period="1mo", interval="1d")
+            if df.empty:
+                continue
+            last_c = round(float(df["Close"].iloc[-1]), 2)
+            prev_c = round(float(df["Close"].iloc[-2]), 2) if len(df) > 1 else last_c
+            pct_24h = round(((last_c - prev_c) / prev_c) * 100, 2)
+            
+            delta = df["Close"].diff()
+            gain = delta.clip(lower=0).rolling(14).mean()
+            loss = (-delta.clip(upper=0)).rolling(14).mean()
+            rs = gain / (loss + 1e-9)
+            rsi = round(float(100 - (100 / (1 + rs)).iloc[-1]), 1) if not gain.empty else 50.0
+            
+            sma20 = float(df["Close"].tail(20).mean())
+            trend = "Bullish (Tăng)" if last_c >= sma20 else "Bearish (Giảm)"
+            rating = "MUA" if (last_c >= sma20 and rsi < 65) else ("BÁN" if (last_c < sma20 and rsi > 35) else "THEO DÕI")
+            
+            results.append({
+                "symbol": disp_sym,
+                "name": disp_name,
+                "price": last_c,
+                "change_pct": pct_24h,
+                "rsi": rsi,
+                "trend": trend,
+                "rating": rating
+            })
+        except Exception as e:
+            results.append({"symbol": disp_sym, "name": disp_name, "error": str(e)})
+            
+    return results
+
 class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def _get_allowed_origin(self):
+        origin = self.headers.get("Origin", "")
+        if not origin:
+            return "*"
+        parsed = urllib.parse.urlparse(origin)
+        if parsed.hostname in ("localhost", "127.0.0.1", "0.0.0.0", "::1") or parsed.hostname is None:
+            return origin
+        return "null"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(WEB_DIR), **kwargs)
 
     def do_OPTIONS(self):
         self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
         self.send_header("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.send_header("Access-Control-Max-Age", "86400")
@@ -920,7 +1083,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(content)))
-                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
                 self.end_headers()
                 self.wfile.write(content)
                 return
@@ -1000,7 +1163,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 disp = "inline" if view_mode == "inline" else "attachment"
                 self.send_header("Content-Disposition", f'{disp}; filename="{safe_name}"')
                 self.send_header("Content-Length", str(pdf_path.stat().st_size))
-                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
                 self.end_headers()
                 if self.command != "HEAD":
                     with open(pdf_path, "rb") as f:
@@ -1062,6 +1225,19 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json({"error": "File PDF chưa tồn tại hoặc chưa được tạo"}, status=404)
             return
 
+        elif path == "/api/fear_greed":
+            self._send_json(get_fear_and_greed_data())
+            return
+
+        elif path == "/api/screener_quick":
+            category = query.get("category", query.get("cat", ["crypto"]))[0]
+            self._send_json({"ok": True, "category": category, "results": quick_screen_assets(category)})
+            return
+
+        elif path == "/api/paper_trades":
+            self._send_json({"ok": True, "trades": load_paper_trades()})
+            return
+
         elif path == "/api/candles":
             symbol = query.get("symbol", ["BTC-USD"])[0]
             period = query.get("period", ["6mo"])[0]
@@ -1115,12 +1291,29 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json(res)
             return
 
+        elif path == "/api/stop":
+            with STATE_LOCK:
+                EXECUTION_STATE.update({
+                    "is_running": False,
+                    "current_step": "Đã dừng",
+                    "current_step_vi": "Tác vụ đã được dừng bởi người dùng",
+                    "active_dept_id": "",
+                    "error": "Tác vụ đã được dừng bởi người dùng."
+                })
+            self._send_json({"ok": True, "message": "Đã dừng và đặt lại trạng thái tác vụ."})
+            return
+
         elif path == "/api/send_telegram":
             symbol = payload.get("symbol", "")
             date = payload.get("date", "")
             bot_token = payload.get("bot_token")
             chat_id = payload.get("chat_id")
             res = send_telegram_report(symbol, date, bot_token=bot_token, chat_id=chat_id)
+            self._send_json(res)
+            return
+
+        elif path == "/api/paper_trades":
+            res = handle_paper_trade(payload)
             self._send_json(res)
             return
 
@@ -1131,7 +1324,7 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
@@ -1157,4 +1350,3 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=8888)
     args = parser.parse_args()
     run_server(args.port)
-

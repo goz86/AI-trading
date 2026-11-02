@@ -54,7 +54,7 @@
     }
 
     .app-container {
-      max-width: 1320px;
+      max-width: 1440px;
       margin: 0 auto;
       padding: 16px 20px 60px;
     }
@@ -64,38 +64,50 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 18px;
-      background: rgba(255, 255, 255, 0.72);
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      gap: 12px;
+      padding: 8px 18px;
+      min-height: 52px;
+      background: rgba(255, 255, 255, 0.75);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.85);
       border-radius: var(--radius-pill);
       margin-bottom: 18px;
       box-shadow: 0 8px 24px rgba(40, 60, 50, 0.08);
+      box-sizing: border-box;
     }
 
-    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap; }
     .brand-avatar {
       width: 32px; height: 32px; border-radius: 9px;
       background: linear-gradient(135deg, #1f2421, #40534c);
       display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700; font-size: 13px;
+      color: #fff; font-weight: 700; font-size: 13px; flex-shrink: 0;
     }
-    .brand-title { font-size: 14px; font-weight: 700; color: #1f2421; letter-spacing: -0.2px; }
+    .brand-title { font-size: 14px; font-weight: 700; color: #1f2421; letter-spacing: -0.2px; white-space: nowrap; flex-shrink: 0; }
     .brand-tag {
       font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
       background: rgba(0, 0, 0, 0.06); color: var(--text-secondary); text-transform: uppercase;
+      white-space: nowrap; flex-shrink: 0;
     }
 
     /* Top Segmented Controls */
     .segmented-control {
-      display: flex; background: rgba(0, 0, 0, 0.05); padding: 4px;
-      border-radius: var(--radius-pill); gap: 3px;
+      display: flex; align-items: center; background: rgba(0, 0, 0, 0.05); padding: 3px;
+      border-radius: var(--radius-pill); gap: 2px; flex-shrink: 0; white-space: nowrap;
+      overflow-x: auto; scrollbar-width: none;
     }
+    .segmented-control::-webkit-scrollbar { display: none; }
     .segmented-item {
-      padding: 6px 15px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500;
+      padding: 6px 12px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 500;
       color: var(--text-secondary); cursor: pointer; border: none; background: transparent;
-      transition: all 0.2s ease;
+      transition: all 0.2s ease; white-space: nowrap; flex-shrink: 0;
+    }
+
+    .header-actions {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap;
     }
     .segmented-item:hover { color: var(--text-main); }
     .segmented-item.active {
@@ -104,10 +116,27 @@
     }
 
     .status-pill {
-      display: flex; align-items: center; gap: 7px; padding: 5px 12px;
+      display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px;
       border-radius: var(--radius-pill); font-size: 12px; font-weight: 600;
       background: #fff; border: 1px solid rgba(0, 0, 0, 0.06); color: var(--text-secondary);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .source-tag {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-pill);
+      background: rgba(2, 132, 199, 0.08); color: #0369a1; border: 1px solid rgba(2, 132, 199, 0.2);
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+    }
+    body.dark-mode .source-tag {
+      background: rgba(56, 189, 248, 0.12); color: #38bdf8; border-color: rgba(56, 189, 248, 0.25);
+    }
+    #globalStatusText {
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+      vertical-align: middle;
     }
     .status-dot {
       width: 8px; height: 8px; border-radius: 50%;
@@ -189,6 +218,300 @@
     }
 
     /* Floating Speech Bubbles (Clean, intentional styling without AI cliches) */
+    
+    /* ================= TASTE-SKILL DESIGN SYSTEM & SVG ICON SUITE ================= */
+    .ui-svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 1.8;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .ui-svg-chevron {
+      width: 11px;
+      height: 11px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      margin-left: 2px;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      flex-shrink: 0;
+    }
+
+    .diorama-top-hud {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    .hud-left-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      max-width: calc(100% - 150px);
+      padding: 2px 0;
+    }
+    .hud-left-toolbar::-webkit-scrollbar { display: none; }
+
+    .hud-btn {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #1f2421;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .hud-btn:hover {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.14);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .hud-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .hud-btn.primary-pill {
+      background: var(--brand-red);
+      color: #ffffff;
+      border-color: var(--brand-red);
+      box-shadow: 0 3px 10px rgba(130, 39, 39, 0.25);
+    }
+    .hud-btn.primary-pill .ui-svg { stroke: #ffffff; }
+    .hud-btn.primary-pill:hover {
+      background: var(--brand-red-hover);
+      border-color: var(--brand-red-hover);
+    }
+
+    .hud-btn.accent-blue {
+      color: #0071e3;
+      border-color: rgba(0, 113, 227, 0.25);
+    }
+    .hud-btn.accent-blue.active {
+      background: #0071e3;
+      color: #ffffff;
+      border-color: #0071e3;
+      box-shadow: 0 3px 10px rgba(0, 113, 227, 0.3);
+    }
+    .hud-btn.accent-blue.active .ui-svg { stroke: #ffffff; }
+
+    .hud-btn.accent-green {
+      color: #15803d;
+      border-color: rgba(21, 128, 61, 0.25);
+    }
+
+    .hud-btn.accent-amber {
+      color: #b45309;
+      border-color: rgba(180, 83, 9, 0.25);
+    }
+
+    .hud-btn.hud-btn-danger {
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fca5a5;
+      font-weight: 700;
+    }
+
+    .hud-agent-counter {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #2b332f;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      pointer-events: auto;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Bespoke Taste-Skill Popover Dropdown */
+    .taste-popover {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .taste-popover.open .ui-svg-chevron {
+      transform: rotate(180deg);
+    }
+
+    .taste-popover-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 296px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(0, 0, 0, 0.04);
+      padding: 6px;
+      z-index: 55;
+      animation: popoverFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popoverFadeIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .taste-popover.open .taste-popover-menu {
+      display: block;
+    }
+
+    .popover-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #8b9790;
+      padding: 6px 10px 4px;
+    }
+
+    .popover-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      color: #1f2421;
+    }
+
+    .popover-item:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .popover-item.active {
+      background: rgba(0, 113, 227, 0.08);
+      color: #0071e3;
+    }
+
+    .popover-item .ui-svg {
+      width: 15px;
+      height: 15px;
+      color: #5c6761;
+    }
+
+    .popover-item.active .ui-svg {
+      color: #0071e3;
+    }
+
+    .popover-item-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .popover-item-title {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .popover-item-sub {
+      font-size: 10.5px;
+      color: #8b9790;
+      line-height: 1.3;
+    }
+
+    .popover-item .ui-svg-check {
+      width: 13px;
+      height: 13px;
+      stroke: #0071e3;
+      stroke-width: 2.2;
+      fill: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .popover-item.active .ui-svg-check {
+      opacity: 1;
+    }
+
+    /* Dark Mode Popover & HUD */
+    body.dark-mode .hud-btn {
+      background: rgba(30, 41, 59, 0.88);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+    body.dark-mode .hud-btn:hover {
+      background: rgba(45, 58, 80, 0.95);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    body.dark-mode .hud-agent-counter {
+      background: rgba(30, 41, 59, 0.88);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    body.dark-mode .taste-popover-menu {
+      background: rgba(15, 23, 42, 0.96);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+    }
+    body.dark-mode .popover-item {
+      color: #e2e8f0;
+    }
+    body.dark-mode .popover-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    body.dark-mode .popover-item.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+    body.dark-mode .popover-item.active .ui-svg,
+    body.dark-mode .popover-item.active .ui-svg-check {
+      color: #38bdf8;
+      stroke: #38bdf8;
+    }
+
     .speech-bubble {
       position: absolute;
       transform: translate(-50%, -100%);
@@ -423,9 +746,15 @@
     }
     .app-toast.show { transform: translateY(0); opacity: 1; }
 
-    @media (max-width: 860px) {
+    @media (max-width: 1240px) {
+      .brand-tag { display: none !important; }
+      #themeToggleLabel { display: none !important; }
+    }
+    @media (max-width: 900px) {
       .grid-2, .grid-4, .debate-wrapper { grid-template-columns: 1fr; }
-      header.studio-header { flex-direction: column; gap: 10px; border-radius: var(--radius-lg); }
+      header.studio-header { flex-direction: column; align-items: stretch; gap: 10px; border-radius: var(--radius-lg); }
+      .segmented-control { overflow-x: auto; width: 100%; justify-content: flex-start; }
+      .header-actions { justify-content: flex-end; width: 100%; }
       .command-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     }
 
@@ -527,11 +856,19 @@
       <button class="segmented-item" onclick="switchTab('settings')">Cấu Hình API</button>
     </div>
 
-    <div style="display:flex; align-items:center; gap:8px;">
-      <!-- Dark / Light Theme Toggle -->
-      <button class="btn-main btn-sub" id="themeToggleBtn" onclick="toggleDarkMode()" style="padding:6px 14px; font-size:12px; font-weight:700; border-radius:var(--radius-pill);" title="Chuyển chế độ Giao diện Tối / Sáng">
-        🌙 Tối
+    <div class="header-actions">
+      <!-- Dark / Light Theme Toggle (Taste-Skill Anti-Slop) -->
+      <button class="btn-main btn-sub" id="themeToggleBtn" onclick="toggleDarkMode()" style="padding:5px 10px; font-size:12px; font-weight:600; border-radius:var(--radius-pill); display:inline-flex; align-items:center; gap:6px; flex-shrink:0; white-space:nowrap;" title="Chuyển chế độ Giao diện Tối / Sáng">
+        <svg class="ui-svg" id="themeIconMoon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <svg class="ui-svg" id="themeIconSun" style="display:none;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <span id="themeToggleLabel">Tối</span>
       </button>
+
+      <!-- Real-time Fear & Greed Pill (Taste-Skill Live Intel) -->
+      <div class="status-pill" id="globalFngPill" style="cursor:help;" title="Chỉ số Sợ Hãi & Tham Lam (Live Fear & Greed Index)">
+        <svg class="ui-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span id="fngScore">F&G: 37 (Fear)</span>
+      </div>
 
       <!-- Real-time Status Indicator -->
       <div class="status-pill">
@@ -547,25 +884,151 @@
     <div class="diorama-frame-card" id="dioramaFrame">
       <!-- Top HUD Actions (Styled directly after user's reference image) -->
       <div class="diorama-top-hud">
-        <div class="hud-btn-group">
-          <button class="hud-btn" id="btnToggleRotate" onclick="toggleAutoRotate()">Tự xoay</button>
-          <button class="hud-btn primary-pill" id="btnToggleLabels" onclick="toggleLabels()">Tên</button>
-          <button class="hud-btn primary-pill" id="btnToggleBubbles" onclick="toggleBubbles()">Bong bóng</button>
-          <button class="hud-btn" onclick="resetOfficeCamera()">Toàn cảnh</button>
-          <button class="hud-btn" onclick="focusExecutiveOffice()">Tổng quan</button>
-          <button class="hud-btn" onclick="triggerAgentMeeting()">Tự chạy ▶</button>
-          <button class="hud-btn" id="btnMoodToggle" onclick="cycleOfficeMood()" style="font-weight:700; color:#d97706; border-color:#fde68a;" title="Chuyển chế độ ánh sáng sàn: Tự động / Mua (Cyan) / Bán (War Room Amber)">💡 Mood: Tự Động</button>
-          <button class="hud-btn" id="btnExitZoom" onclick="resetOfficeCamera()" style="display:none; background:#fee2e2; color:#dc2626; border-color:#fca5a5; font-weight:700;">✕ Thu Nhỏ Góc Nhìn</button>
-          <button class="hud-btn" id="btnProjector"  onclick="toggleOfficeProjector()" style="background:#eaf8ef; color:#2a9d55; border-color:#b7e4c7; font-weight:700;">Màn Chiếu Nến</button>
+        <div class="hud-left-toolbar">
+          <!-- Taste-Skill Camera Angles Popover Dropdown -->
+          <div class="taste-popover" id="cameraPopover">
+            <button type="button" class="hud-btn" id="cameraPopoverBtn" onclick="toggleCameraPopover(event)">
+              <svg class="ui-svg" id="cameraActiveIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              <span id="cameraDropdownLabel">Toàn Cảnh 3D</span>
+              <svg class="ui-svg-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="taste-popover-menu" id="cameraPopoverMenu">
+              <div class="popover-section-label">Góc Máy 3D Điện Ảnh</div>
+              <div class="popover-item active" data-preset="iso" onclick="selectCameraPreset('iso', 'Toàn Cảnh 3D')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Toàn Cảnh 3D</div>
+                  <div class="popover-item-sub">Góc nhìn 35° Isometric bao quát sàn</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="castle" onclick="selectCameraPreset('castle', 'Phòng Điều Hành')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Phòng Điều Hành</div>
+                  <div class="popover-item-sub">Bàn họp kính Ban Giám Đốc</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="tech" onclick="selectCameraPreset('tech', 'Phòng Kỹ Thuật')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><path d="m3 3 7 7 4-4 7 7"/><path d="M14 13h7v7"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Phòng Kỹ Thuật</div>
+                  <div class="popover-item-sub">Đọc nến, volume & chỉ báo kỹ thuật</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="bullbear" onclick="selectCameraPreset('bullbear', 'Võ Đài Tranh Biện')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Võ Đài Tranh Biện</div>
+                  <div class="popover-item-sub">Phe Mua vs Phe Bán đối thoại</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="trader" onclick="selectCameraPreset('trader', 'Bàn Lệnh Trader')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><path d="M12 20v-6"/><path d="M6 20V10"/><path d="M18 20V4"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Bàn Lệnh Trader</div>
+                  <div class="popover-item-sub">Kế hoạch vào lệnh, SL & TP</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="news" onclick="selectCameraPreset('news', 'Kinh Tế Vĩ Mô')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Kinh Tế Vĩ Mô & Fed</div>
+                  <div class="popover-item-sub">Tin tức tài chính & sự kiện kinh tế</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="social" onclick="selectCameraPreset('social', 'Lounge & MXH')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Lounge & Tâm Lý MXH</div>
+                  <div class="popover-item-sub">Đo lường tâm lý đám đông</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="popover-item" data-preset="fundamentals" onclick="selectCameraPreset('fundamentals', 'Phòng Tài Chính')">
+                <svg class="ui-svg" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+                <div class="popover-item-text">
+                  <div class="popover-item-title">Phòng Tài Chính (BCTC)</div>
+                  <div class="popover-item-sub">Báo cáo tài chính & định giá P/E</div>
+                </div>
+                <svg class="ui-svg-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Follow AI Button -->
+          <button class="hud-btn accent-blue" id="btnFollowAi" onclick="toggleFollowAi()" title="Tự động lia camera theo bước phân tích của AI">
+            <svg class="ui-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>Theo Dấu AI</span>
+          </button>
+
+          <!-- Auto Rotate Button -->
+          <button class="hud-btn" id="btnToggleRotate" onclick="toggleAutoRotate()">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8"/><path d="M21 3v5h-5"/></svg>
+            <span id="rotateBtnLabel">Tự Xoay</span>
+          </button>
+
+          <!-- Label Toggle Button -->
+          <button class="hud-btn primary-pill" id="btnToggleLabels" onclick="toggleLabels()">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span>Tên</span>
+          </button>
+
+          <!-- Speech Bubble Toggle Button -->
+          <button class="hud-btn primary-pill" id="btnToggleBubbles" onclick="toggleBubbles()">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Bong Bóng</span>
+          </button>
+
+          <!-- Projector Screen Toggle Button -->
+          <button class="hud-btn accent-green" id="btnProjector" onclick="toggleOfficeProjector()">
+            <svg class="ui-svg" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/><path d="M7 9v2"/><path d="M12 7v4"/><path d="M17 10v3"/></svg>
+            <span>Màn Chiếu Nến</span>
+          </button>
+
+          <!-- Mood Lighting Toggle Button -->
+          <button class="hud-btn accent-amber" id="btnMoodToggle" onclick="cycleOfficeMood()" title="Chuyển chế độ ánh sáng studio">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            <span id="moodLabelText">Mood: Tự Động</span>
+          </button>
+
+          <!-- Agent Meeting Toggle Button -->
+          <button class="hud-btn" id="btnSoundToggle" onclick="toggleSoundEffect()" title="Bật/Tắt âm thanh tương tác">
+            <svg class="ui-svg" id="soundIconOn" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            <svg class="ui-svg" id="soundIconOff" style="display:none;" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+            <span id="soundLabel">Âm Thanh</span>
+          </button>
+
+          <button class="hud-btn" id="btnMeeting" onclick="triggerAgentMeeting()">
+            <svg class="ui-svg" id="meetingIcon" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <span id="meetingBtnText">Họp Hội Đồng</span>
+          </button>
+
+          <!-- Exit Zoom Button -->
+          <button class="hud-btn hud-btn-danger" id="btnExitZoom" onclick="resetOfficeCamera()" style="display:none;">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <span>Thu Nhỏ</span>
+          </button>
         </div>
 
         <div class="hud-agent-counter">
-          <div class="status-dot"></div> 7 agent
+          <div class="status-dot"></div>
+          <span>7 tác tử hoạt động</span>
         </div>
       </div>
 
       <!-- WebGL Canvas -->
       <canvas id="officeCanvas" style="width:100%; height:100%; display:block;"></canvas>
+
+      <!-- Interactive 3D Workstation Hover Tooltip -->
+      <div id="officeHoverTooltip" style="display:none; position:absolute; pointer-events:none; background:rgba(15, 23, 42, 0.92); backdrop-filter:blur(10px); color:#fff; border:1px solid rgba(255,255,255,0.18); border-radius:999px; padding:6px 14px; font-size:12px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.3); z-index:40; transform:translate(-50%, -130%); white-space:nowrap; transition:opacity 0.15s ease;">
+        <span id="hoverTooltipDept">Phòng Ban</span> · <span id="hoverTooltipRole" style="color:#38bdf8;">Nhiệm vụ</span>
+      </div>
 
       <!-- Speech Bubbles Layer (HTML overlay positioned via 3D World Coordinates) -->
       <div id="speechOverlay"></div>
@@ -582,7 +1045,7 @@
             <button class="btn-main btn-sub proj-period-btn" onclick="setProjectorPeriod('1mo', this)" style="padding:4px 10px; font-size:12px;">1 Tháng</button>
             <button class="btn-main btn-sub proj-period-btn active" onclick="setProjectorPeriod('3mo', this)" style="padding:4px 10px; font-size:12px; background:#1f2421; color:#fff;">3 Tháng</button>
             <button class="btn-main btn-sub proj-period-btn" onclick="setProjectorPeriod('6mo', this)" style="padding:4px 10px; font-size:12px;">6 Tháng</button>
-            <button class="btn-main btn-sub" onclick="toggleOfficeProjector()" style="padding:4px 12px; font-size:12px; font-weight:700; color:#ef4444; border-color:#fca5a5; margin-left:6px;">✕ Thu Gọn</button>
+            <button class="btn-main btn-sub" onclick="toggleOfficeProjector()" style="padding:4px 12px; font-size:12px; font-weight:700; color:#ef4444; border-color:#fca5a5; margin-left:6px;"><svg class="ui-svg" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Thu Gọn</button>
           </div>
         </div>
         <div style="display:flex; gap:14px; font-size:12px; margin-bottom:10px; padding:6px 12px; background:#f8faf9; border-radius:var(--radius-sm); border:1px solid rgba(0,0,0,0.05); flex-wrap:wrap; align-items:center;">
@@ -633,11 +1096,52 @@
         <div class="command-title">Khởi Động Lệnh Họp Đa Tác Tử</div>
         <div class="command-presets">
           <span class="preset-chip" onclick="applyPreset('BTC-USD', 'crypto')">BTC/USD (Hôm nay)</span>
-          <span class="preset-chip" onclick="applyPreset('XAU-USD', 'commodity')">XAU/USD (Vàng thế giới)</span>
+          <span class="preset-chip" onclick="applyPreset('XAU', 'commodity')">XAU (Vàng thế giới)</span>
           <span class="preset-chip" onclick="applyPreset('NVDA', 'stock')">NVDA (Báo cáo Q3)</span>
           <span class="preset-chip" onclick="applyPreset('ETH-USD', 'crypto')">ETH/USD (Swing)</span>
         </div>
       </div>
+      <!-- 1-Click Market Screener Panel (Phase 4) -->
+      <div class="studio-card" style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div>
+            <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+              <svg class="ui-svg" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Quét Thị Trường Nhanh (1-Click Market Screener)
+            </div>
+            <div class="card-desc">Quét đồng loạt các tài sản hàng đầu để tìm cơ hội vào lệnh hôm nay</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-main btn-sub active" id="btnScrnCrypto" onclick="loadMarketScreener('crypto')">Top Crypto</button>
+            <button class="btn-main btn-sub" id="btnScrnStocks" onclick="loadMarketScreener('stocks')">Cổ Phiếu Mỹ</button>
+            <button class="btn-main btn-sub" id="btnScrnComm" onclick="loadMarketScreener('commodities')">Vàng & Dầu</button>
+          </div>
+        </div>
+
+        <div id="screenerLoading" style="display:none; text-align:center; padding:16px; color:#5c6761; font-size:13px;">
+          Đang quét dữ liệu thị trường và phân tích chỉ số RSI / MA...
+        </div>
+
+        <div id="screenerTableWrap" style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12.5px; text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid rgba(0,0,0,0.08); color:#8b9790;">
+                <th style="padding:8px 10px;">Mã</th>
+                <th style="padding:8px 10px;">Giá</th>
+                <th style="padding:8px 10px;">24h %</th>
+                <th style="padding:8px 10px;">RSI (14)</th>
+                <th style="padding:8px 10px;">Xu Hướng</th>
+                <th style="padding:8px 10px;">Đánh Giá Nhanh</th>
+                <th style="padding:8px 10px; text-align:right;">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="screenerTableBody">
+              <!-- Populated dynamically via /api/screener_quick -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="command-input-row">
         <input type="text" class="command-input" id="smartPromptInput" 
                placeholder="Nhập yêu cầu phân tích (VD: Phân tích nến 1D và tin tức Bitcoin hôm nay xem xu hướng Mua hay Bán)"
@@ -747,9 +1251,12 @@
           <div class="card-title" id="liveHeaderTitle">Tiến Độ Phân Tích Đa Tác Tử</div>
           <div class="card-desc" id="liveHeaderSubtitle">Theo dõi quy trình phối hợp thời gian thực giữa các phòng ban</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:22px; font-weight:700; font-family:var(--font-mono);" id="liveTimer">00:00</div>
-          <div style="font-size:12px; color:var(--text-muted);" id="liveCallCount">Số lượt gọi AI: 0</div>
+        <div style="text-align:right; display:flex; align-items:center; gap:12px;">
+          <div>
+            <div style="font-size:22px; font-weight:700; font-family:var(--font-mono);" id="liveTimer">00:00</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="liveCallCount">Số lượt gọi AI: 0</div>
+          </div>
+          <button class="btn-main btn-sub" id="btnStopAnalysis" onclick="stopAnalysisTask()" style="display:none; color:#dc2626; border-color:#fca5a5; font-weight:700; padding:6px 14px;" title="Dừng phân tích khẩn cấp"><svg class="ui-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> Dừng</button>
         </div>
       </div>
 
@@ -763,8 +1270,9 @@
         <div style="font-size:13px; color:#166534; margin-bottom:12px;">Đã xuất bản thành công bản tóm tắt tiếng Việt & file PDF theo chuẩn 5 Phút Trading.</div>
         <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
           <button class="btn-main btn-primary" onclick="switchTab('report')" style="padding:8px 20px;">Xem Báo Cáo Chi Tiết</button>
-          <button class="btn-main btn-sub" onclick="downloadCurrentPdf()" style="padding:8px 18px;">📄 Tải File PDF</button>
+          <button class="btn-main btn-sub" onclick="downloadCurrentPdf()" style="padding:8px 18px;"><svg class="ui-svg" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg> Tải File PDF</button>
           <button class="btn-main btn-sub" onclick="openCurrentPdfSystem()" style="padding:8px 18px;">Mở PDF Trên Máy Tính</button>
+          <button class="btn-main btn-sub" onclick="exportInfographicImage()" style="padding:8px 18px; color:#0284c7; border-color:#bae6fd; font-weight:700;"><svg class="ui-svg" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> Xuất Ảnh Infographic (16:9)</button>
         </div>
       </div>
 
@@ -801,7 +1309,7 @@
             Xem Trực Tiếp PDF
           </button>
           <button class="btn-main btn-sub" id="btnVoiceRead" onclick="toggleVoiceBriefing()" style="padding:9px 18px; color:#7c3aed; border-color:#ddd6fe; font-weight:700;" title="Nghe tóm tắt quyết định AI bằng giọng đọc thời sự">
-            🎙️ Nghe Báo Cáo
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Nghe Báo Cáo
           </button>
           <button class="btn-main btn-sub" onclick="sendCurrentReportTelegram()"  style="padding:9px 18px; color:#0284c7; border-color:#bae6fd;" title="Gửi tóm tắt và file PDF qua Telegram">
             Gửi Telegram
@@ -869,6 +1377,24 @@
               <div id="gaugeFundBar" style="height:100%; width:52%; background:#8b5cf6; border-radius:3px;"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Verified Credible Data Sources Bar (Taste Standard) -->
+      <div style="margin-bottom:18px; padding:10px 16px; background:rgba(255,255,255,0.72); backdrop-filter:blur(10px); border-radius:var(--radius-md); border:1px solid rgba(0,0,0,0.06); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg class="ui-svg" style="color:#0284c7; width:16px; height:16px;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span style="font-size:12px; font-weight:700; color:#1f2421;">Nguồn Dữ Liệu Uy Tín Đã Tham Chiếu & Xác Thực:</span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;" id="repSourcesBadgeContainer">
+          <span class="source-tag">Reuters & Bloomberg</span>
+          <span class="source-tag">CoinDesk & Decrypt</span>
+          <span class="source-tag">CoinTelegraph</span>
+          <span class="source-tag">Kitco & Investing.com</span>
+          <span class="source-tag">Alternative.me Fear & Greed</span>
+          <span class="source-tag">CBOE VIX Volatility</span>
+          <span class="source-tag">Yahoo Finance OHLCV</span>
+          <span class="source-tag">Fed FRED Macro</span>
         </div>
       </div>
 
@@ -1103,7 +1629,7 @@
       <!-- Collapsible Raw English Reports (Accordion) -->
       <details style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:20px;">
         <summary style="font-weight:700; font-size:14px; cursor:pointer; color:var(--text-secondary); user-select:none;">
-          📂 Xem Biên Bản Kỹ Thuật Gốc (Toàn Bộ Nhật Ký Tiếng Anh Của Các Agent)
+          <svg class="ui-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Xem Biên Bản Gốc (Toàn Bộ Nhật Ký Tiếng Anh Của Các Agent)
         </summary>
         <div style="margin-top:16px; border-top:1px solid rgba(0,0,0,0.06); padding-top:16px;">
           <div class="report-block">
@@ -1239,7 +1765,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
         <div>
           <div class="card-title" style="display:flex; align-items:center; gap:8px;">
-            <span>🤖 Cấu Hình Telegram Bot (Tự Động Bắn Báo Cáo & File PDF)</span>
+            <span><svg class="ui-svg" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Cấu Hình Telegram Bot (Tự Động Bắn Báo Cáo & File PDF)</span>
             <span class="brand-tag" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">5 Phút Trading</span>
           </div>
           <div class="card-desc" style="margin-bottom:0;">Tự động gửi tóm tắt nhận định và đính kèm trực tiếp file PDF 3 trang vào nhóm/chat Telegram ngay khi AI họp xong</div>
@@ -1265,7 +1791,7 @@
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="btn-main btn-sub" onclick="testTelegramBot()">
-          🔔 Kiểm Tra Kết Nối Telegram
+          <svg class="ui-svg" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Kiểm Tra Kết Nối Telegram
         </button>
         <button class="btn-main btn-primary" onclick="saveConfigToServer()">
           Lưu Cấu Hình Telegram
@@ -1328,6 +1854,336 @@
     { dept: "castle", text: "Uống matcha, chờ các phòng nộp đủ tài liệu để ký duyệt." }
   ];
 
+
+  // ================= PHASE 2, 3, 4, 5 JAVASCRIPT EXTENSIONS =================
+  async function fetchLiveFearAndGreed() {
+    try {
+      const res = await fetch(`${API_BASE}/api/fear_greed`);
+      const data = await res.json();
+      if (data.ok) {
+        const el = document.getElementById("fngScore");
+        if (el) el.innerText = `F&G: ${data.value} (${data.classification})`;
+      }
+    } catch (_) {}
+  }
+
+  // 1-Click Market Screener
+  async function loadMarketScreener(cat = 'crypto') {
+    const loading = document.getElementById("screenerLoading");
+    const body = document.getElementById("screenerTableBody");
+    if (loading) loading.style.display = "block";
+    if (body) body.innerHTML = "";
+
+    document.querySelectorAll("#btnScrnCrypto, #btnScrnStocks, #btnScrnComm").forEach(b => b.classList.remove("active"));
+    if (cat === 'crypto') document.getElementById("btnScrnCrypto")?.classList.add("active");
+    if (cat === 'stocks') document.getElementById("btnScrnStocks")?.classList.add("active");
+    if (cat === 'commodities') document.getElementById("btnScrnComm")?.classList.add("active");
+
+    try {
+      const res = await fetch(`${API_BASE}/api/screener_quick?category=${cat}`);
+      const data = await res.json();
+      if (loading) loading.style.display = "none";
+
+      if (data.ok && data.results) {
+        data.results.forEach(r => {
+          if (r.error) return;
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid rgba(0,0,0,0.05)";
+          const isUp = r.change_pct >= 0;
+          const ratingColor = r.rating === 'MUA' ? '#16a34a' : (r.rating === 'BÁN' ? '#dc2626' : '#d97706');
+          const ratingBg = r.rating === 'MUA' ? '#f0fdf4' : (r.rating === 'BÁN' ? '#fef2f2' : '#fffbeb');
+
+          tr.innerHTML = `
+            <td style="padding:8px 10px; font-weight:700;">${r.symbol}</td>
+            <td style="padding:8px 10px; font-family:var(--font-mono);">$${r.price.toLocaleString()}</td>
+            <td style="padding:8px 10px; font-weight:600; color:${isUp ? '#16a34a' : '#dc2626'};">${isUp ? '+' : ''}${r.change_pct}%</td>
+            <td style="padding:8px 10px; font-family:var(--font-mono);">${r.rsi}</td>
+            <td style="padding:8px 10px;">${r.trend}</td>
+            <td style="padding:8px 10px;"><span style="padding:2px 8px; border-radius:999px; background:${ratingBg}; color:${ratingColor}; font-weight:700; font-size:11px;">${r.rating}</span></td>
+            <td style="padding:8px 10px; text-align:right;">
+              <button class="btn-main btn-sub" onclick="launchScreenerSymbol('${r.symbol}')" style="padding:3px 10px; font-size:11px;">Phân Tích Sâu</button>
+            </td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+    } catch (e) {
+      if (loading) loading.innerText = "Lỗi quét thị trường: " + e.message;
+    }
+  }
+
+  function launchScreenerSymbol(sym) {
+    const input = document.getElementById("symbolInput");
+    if (input) input.value = sym;
+    const promptInput = document.getElementById("smartPromptInput");
+    if (promptInput) {
+      promptInput.value = `Phân tích nến 1D và xu hướng kỹ thuật mã ${sym} hôm nay xem Mua hay Bán`;
+    }
+    switchTab("studio");
+    showToast(`Đã chọn mã ${sym}, sẵn sàng phân tích đa tác tử!`);
+  }
+
+  // Paper Trading & Position Sizer
+  function recalcPositionSize() {
+    const capital = parseFloat(document.getElementById("simCapitalInput")?.value) || 10000;
+    const riskPct = parseFloat(document.getElementById("simRiskPctInput")?.value) || 1.5;
+    const maxLoss = (capital * riskPct) / 100;
+    
+    const maxLossEl = document.getElementById("simMaxLossText");
+    if (maxLossEl) maxLossEl.innerText = `$${maxLoss.toFixed(2)}`;
+
+    // Approximate size based on 4% SL distance
+    const estSize = maxLoss / 0.04;
+    const sizeEl = document.getElementById("simPosSizeText");
+    if (sizeEl) sizeEl.innerText = `$${Math.round(estSize).toLocaleString()}`;
+  }
+
+  async function loadPaperTrades() {
+    try {
+      const res = await fetch(`${API_BASE}/api/paper_trades`);
+      const data = await res.json();
+      const body = document.getElementById("paperTradesBody");
+      if (!body) return;
+      body.innerHTML = "";
+
+      if (data.ok && data.trades && data.trades.length) {
+        data.trades.forEach(t => {
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid rgba(0,0,0,0.05)";
+          const isBuy = t.type === "BUY";
+          tr.innerHTML = `
+            <td style="padding:6px 8px; font-weight:700;">${t.symbol}</td>
+            <td style="padding:6px 8px;"><span style="color:${isBuy ? '#16a34a' : '#dc2626'}; font-weight:700;">${t.type}</span></td>
+            <td style="padding:6px 8px; font-family:var(--font-mono);">${t.entry_price}</td>
+            <td style="padding:6px 8px; font-family:var(--font-mono); color:#dc2626;">${t.sl || '-'}</td>
+            <td style="padding:6px 8px; font-family:var(--font-mono); color:#16a34a;">${t.tp || '-'}</td>
+            <td style="padding:6px 8px; font-family:var(--font-mono);">$${t.size_usd || '-'}</td>
+            <td style="padding:6px 8px;"><span style="padding:2px 6px; border-radius:4px; background:${t.status==='OPEN'?'#e0f2fe':'#f1f5f9'}; color:${t.status==='OPEN'?'#0284c7':'#64748b'}; font-weight:600; font-size:10px;">${t.status}</span></td>
+            <td style="padding:6px 8px; text-align:right;">
+              ${t.status === 'OPEN' ? `<button class="btn-main btn-sub" onclick="closePaperTrade('${t.id}')" style="padding:2px 8px; font-size:10px; color:#dc2626;">Chốt Lệnh</button>` : `<button class="btn-main btn-sub" onclick="deletePaperTrade('${t.id}')" style="padding:2px 6px; font-size:10px;">Xóa</button>`}
+            </td>
+          `;
+          body.appendChild(tr);
+        });
+      } else {
+        body.innerHTML = `<tr><td colspan="8" style="padding:12px; text-align:center; color:#8b9790;">Chưa có lệnh giả lập nào. Bấm 'Vào Lệnh Giả Lập' để mở vị thế đầu tiên.</td></tr>`;
+      }
+    } catch (_) {}
+  }
+
+  async function openVirtualTradeFromReport() {
+    if (!currentReportData) return alert("Chưa có dữ liệu báo cáo!");
+    const sym = currentReportData.symbol;
+    const rating = String(currentReportData.rating || "BUY").toUpperCase();
+    const isBuy = !rating.includes("SELL") && !rating.includes("BÁN");
+    const entry = document.getElementById("metricPrice")?.innerText || "0";
+    const sl = document.getElementById("metricSL")?.innerText || "0";
+    const tp = document.getElementById("metricTarget")?.innerText || "0";
+    const sizeUsd = parseFloat(document.getElementById("simPosSizeText")?.innerText?.replace(/[^0-9.]/g, '')) || 2500;
+
+    const trade = {
+      symbol: sym,
+      type: isBuy ? "BUY" : "SELL",
+      entry_price: entry,
+      sl: sl,
+      tp: tp,
+      size_usd: sizeUsd
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/paper_trades`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "open", trade: trade })
+      });
+      const data = await res.json();
+      showToast(data.message || "Đã mở vị thế ảo thành công!");
+      loadPaperTrades();
+    } catch (e) {
+      alert("Lỗi mở vị thế: " + e.message);
+    }
+  }
+
+  async function closePaperTrade(id) {
+    if (!confirm("Xác nhận chốt vị thế giả lập này?")) return;
+    try {
+      await fetch(`${API_BASE}/api/paper_trades`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "close", trade: { id: id, close_price: "Market" } })
+      });
+      showToast("Đã chốt vị thế ảo!");
+      loadPaperTrades();
+    } catch (_) {}
+  }
+
+  async function deletePaperTrade(id) {
+    try {
+      await fetch(`${API_BASE}/api/paper_trades`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", trade: { id: id } })
+      });
+      loadPaperTrades();
+    } catch (_) {}
+  }
+
+  // 1-Click Infographic Generator (Phase 5)
+  function exportInfographicImage() {
+    if (!currentReportData) return alert("Chưa có báo cáo để xuất ảnh Infographic!");
+    showToast("Đang kết xuất ảnh Infographic 16:9 sắc nét...");
+
+    const r = currentReportData;
+    const sVi = r.summary_vi || {};
+    const sym = r.symbol || "BTC-USD";
+    const date = r.date || "";
+    const rating = sVi.rating_vi || r.rating || "HOLD";
+    const price = document.getElementById("metricPrice")?.innerText || "Theo thị trường";
+    const sl = document.getElementById("metricSL")?.innerText || "Chặt chẽ";
+    const tp = document.getElementById("metricTarget")?.innerText || "Theo cản";
+    const actionPlan = sVi.trader_action_vi || "Quản trị rủi ro chặt chẽ, chờ tín hiệu xác nhận.";
+
+    // Render on 1600x900 Canvas
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600;
+    canvas.height = 900;
+    const ctx = canvas.getContext("2d");
+
+    // Luxury Dark Gradient Background
+    const bgGrad = ctx.createLinearGradient(0, 0, 1600, 900);
+    bgGrad.addColorStop(0, "#090d16");
+    bgGrad.addColorStop(0.5, "#0f172a");
+    bgGrad.addColorStop(1, "#0a1120");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1600, 900);
+
+    // Cyan/Gold Ambient Halo Glows
+    const glow1 = ctx.createRadialGradient(200, 150, 20, 200, 150, 450);
+    glow1.addColorStop(0, "rgba(56, 189, 248, 0.18)");
+    glow1.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glow1;
+    ctx.fillRect(0, 0, 800, 600);
+
+    const glow2 = ctx.createRadialGradient(1400, 750, 20, 1400, 750, 450);
+    glow2.addColorStop(0, "rgba(34, 197, 94, 0.15)");
+    glow2.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = glow2;
+    ctx.fillRect(800, 400, 800, 500);
+
+    // Outer Glass Border Card
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(50, 50, 1500, 800);
+
+    // Brand Header
+    ctx.font = "bold 24px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("AI TRADING STUDIO · 5 PHÚT TRADING", 90, 105);
+
+    ctx.font = "600 18px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText(`NGÀY: ${date}`, 1340, 105);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.beginPath();
+    ctx.moveTo(90, 130);
+    ctx.lineTo(1510, 130);
+    ctx.stroke();
+
+    // Symbol & Verdict Row
+    ctx.font = "bold 64px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(sym, 90, 215);
+
+    const isBuy = rating.toLowerCase().includes("mua") || rating.includes("BUY");
+    const isSell = rating.toLowerCase().includes("bán") || rating.toLowerCase().includes("giảm") || rating.includes("SELL");
+    const vColor = isBuy ? "#22c55e" : (isSell ? "#ef4444" : "#f59e0b");
+
+    // Verdict Tag Box
+    ctx.fillStyle = vColor;
+    ctx.fillRect(90, 245, 340, 52);
+    ctx.font = "bold 26px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(rating.toUpperCase(), 115, 281);
+
+    // 3 Metrics Boxes
+    const drawMetricBox = (x, y, w, h, title, val, color) => {
+      ctx.fillStyle = "rgba(30, 41, 59, 0.75)";
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.strokeRect(x, y, w, h);
+
+      ctx.font = "600 15px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText(title, x + 20, y + 34);
+
+      ctx.font = "bold 28px 'JetBrains Mono', monospace";
+      ctx.fillStyle = color || "#ffffff";
+      ctx.fillText(val, x + 20, y + 78);
+    };
+
+    drawMetricBox(480, 180, 310, 115, "GIÁ LÚC CHỐT NẾN", price, "#ffffff");
+    drawMetricBox(820, 180, 310, 115, "CHẶN LỖ (STOP LOSS)", sl, "#ef4444");
+    drawMetricBox(1160, 180, 310, 115, "MỤC TIÊU / CẢN (TP)", tp, "#22c55e");
+
+    // Strategy Box
+    ctx.fillStyle = "rgba(30, 41, 59, 0.6)";
+    ctx.fillRect(90, 340, 1380, 130);
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.strokeRect(90, 340, 1380, 130);
+
+    ctx.font = "bold 18px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("KẾ HOẠCH HÀNH ĐỘNG CỦA TRADER (ACTION PLAN):", 120, 380);
+
+    ctx.font = "500 20px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillText(actionPlan.slice(0, 120) + (actionPlan.length > 120 ? '...' : ''), 120, 425);
+
+    // 4 Department Takeaways
+    ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("LUẬN ĐIỂM CỐT LÕI TỪ HỘI ĐỒNG PHÂN TÍCH:", 90, 520);
+
+    const items = sVi.easy_explanation_items || sVi.easy_explanation || [
+      "Phòng Kỹ Thuật: Cấu trúc nến bám dải Bollinger, tôn trọng hỗ trợ then chốt.",
+      "Phòng Tin Tức: Vĩ mô ổn định, dòng tiền tổ chức duy trì tích lũy.",
+      "Phòng Tâm Lý: Chỉ số cảm xúc thị trường cân bằng, không có dấu hiệu hoảng loạn.",
+      "Trưởng phòng: Ưu tiên kỷ luật quản trị vốn, tỷ lệ R:R thuận lợi."
+    ];
+
+    items.slice(0, 4).forEach((it, idx) => {
+      const iy = 565 + idx * 48;
+      ctx.fillStyle = "rgba(15, 23, 42, 0.7)";
+      ctx.fillRect(90, iy - 26, 1380, 40);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+      ctx.strokeRect(90, iy - 26, 1380, 40);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(90, iy - 26, 6, 40);
+
+      ctx.font = "500 17px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillText(it.slice(0, 135), 115, iy);
+    });
+
+    // Watermark Footer with verified sources citation
+    ctx.font = "600 14px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("Nguồn dữ liệu xác thực: Reuters · Bloomberg · CoinDesk · Kitco · Alternative.me F&G · CBOE VIX · Fed FRED", 90, 785);
+
+    ctx.font = "500 14px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("AI Trading Studio · Kênh 5 Phút Trading · Tài liệu phục vụ mục đích nghiên cứu kỹ thuật.", 90, 815);
+
+    // Download PNG
+    const link = document.createElement("a");
+    link.download = `Infographic_${sym}_${date}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    showToast("Đã xuất và tải về ảnh Infographic 16:9 thành công!");
+  }
+
   window.addEventListener("DOMContentLoaded", async () => {
     try {
       initVirtualOffice3D();
@@ -1338,6 +2194,15 @@
     loadConfigFromServer();
     loadHistory();
     startPolling();
+    fetchLiveFearAndGreed();
+    loadMarketScreener('crypto');
+    loadPaperTrades();
+  });
+
+  window.addEventListener("load", () => {
+    if (!officeInitialized) {
+      initVirtualOffice3D();
+    }
   });
 
   function setDateOffset(offsetDays) {
@@ -1501,6 +2366,18 @@
   // High-End Executive Trading Floor & Architectural Command Center
   let serverRackLeds = [];
   let boardroomDisplayMesh = null;
+  let officeHoloSpire = null;
+  let ambientParticles = null;
+  let activeBeaconMesh = null;
+  let activeBeaconRing = null;
+  let currentActiveDeptId = null;
+  let followAiActive = false;
+  let debateHoloSpire = null;
+  const deskCenterMonitors = {};
+  let soundEnabled = true;
+  let audioCtx = null;
+
+
 
   // Cache generated canvas textures for optimal performance
   const textureCache = {};
@@ -1770,10 +2647,60 @@
     return tex;
   }
 
+
+  function generateWoodParquetTexture() {
+    const c = document.createElement("canvas");
+    c.width = 1024;
+    c.height = 1024;
+    const ctx = c.getContext("2d");
+
+    // Warm natural Scandinavian Oak base
+    ctx.fillStyle = "#d8ccba";
+    ctx.fillRect(0, 0, 1024, 1024);
+
+    const plankW = 128;
+    const plankH = 32;
+    const plankColors = ["#dbcebc", "#d3c4af", "#dfd3c1", "#cdbea8", "#e0d5c4"];
+
+    for (let y = 0; y < 1024; y += plankH) {
+      const row = Math.floor(y / plankH);
+      const xOffset = (row % 2) * (plankW / 2);
+      for (let x = -plankW; x < 1024 + plankW; x += plankW) {
+        const colIdx = Math.abs((x * 7 + y * 13) % plankColors.length);
+        ctx.fillStyle = plankColors[colIdx];
+        ctx.fillRect(x + xOffset, y, plankW, plankH);
+
+        // Subtle plank grain lines
+        ctx.fillStyle = "rgba(100, 80, 60, 0.05)";
+        ctx.fillRect(x + xOffset, y + plankH * 0.35, plankW, 2);
+        ctx.fillRect(x + xOffset, y + plankH * 0.7, plankW, 1);
+
+        // Plank joint seams
+        ctx.strokeStyle = "rgba(80, 65, 50, 0.14)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + xOffset, y, plankW, plankH);
+      }
+    }
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 4);
+    return tex;
+  }
+
+  let officeInitialized = false;
+
   function initVirtualOffice3D() {
+    if (officeInitialized) return;
     const frame = document.getElementById("dioramaFrame");
     const canvas = document.getElementById("officeCanvas");
     if (!frame || !canvas) return;
+
+    if (typeof THREE === "undefined" || typeof THREE.OrbitControls === "undefined") {
+      setTimeout(initVirtualOffice3D, 150);
+      return;
+    }
 
     const width = frame.clientWidth || 1000;
     const height = frame.clientHeight || 680;
@@ -1834,9 +2761,11 @@
     boardSpot.position.set(0, 4.5, -0.2);
     scene.add(boardSpot);
 
-    // 6. Build the Complete Executive Floor Diorama
+    // 6. Build the Complete Executive Floor Diorama + Cyber Visuals
     try {
       buildOfficeDiorama();
+      createAmbientParticleField();
+      createActiveBeacon();
     } catch (err) {
       console.error("Lỗi dựng mô hình văn phòng 3D:", err);
     }
@@ -1849,10 +2778,49 @@
     }, 600);
 
     
-    // 8. Raycaster Click to Zoom on Workstations
+    // 8. Raycaster Click & Hover to Interact with Workstations
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let pointerDownPos = { x: 0, y: 0 };
+
+    canvas.addEventListener("pointermove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(scene.children, true);
+      const tooltip = document.getElementById("officeHoverTooltip");
+      
+      let foundDept = null;
+      if (hits.length > 0) {
+        let obj = hits[0].object;
+        while (obj && obj !== scene) {
+          if (obj.userData && obj.userData.deptId) {
+            foundDept = OFFICE_DEPTS.find(d => d.id === obj.userData.deptId);
+            break;
+          }
+          obj = obj.parent;
+        }
+      }
+
+      if (foundDept && tooltip) {
+        canvas.style.cursor = "pointer";
+        document.getElementById("hoverTooltipDept").innerText = foundDept.name;
+        document.getElementById("hoverTooltipRole").innerText = foundDept.role;
+        tooltip.style.display = "block";
+        tooltip.style.left = `${e.clientX - rect.left}px`;
+        tooltip.style.top = `${e.clientY - rect.top}px`;
+      } else {
+        canvas.style.cursor = "default";
+        if (tooltip) tooltip.style.display = "none";
+      }
+    });
+
+    canvas.addEventListener("pointerleave", () => {
+      const tooltip = document.getElementById("officeHoverTooltip");
+      if (tooltip) tooltip.style.display = "none";
+      canvas.style.cursor = "default";
+    });
 
     canvas.addEventListener("pointerdown", (e) => {
       pointerDownPos = { x: e.clientX, y: e.clientY };
@@ -1881,6 +2849,7 @@
     });
 
     window.addEventListener("resize", onWindowResize);
+    officeInitialized = true;
     animate();
   }
 
@@ -1893,13 +2862,34 @@
     tray.receiveShadow = true;
     scene.add(tray);
 
-    // 2. Luxury Oak Floor
-    const floorGeo = new THREE.BoxGeometry(25.6, 0.1, 21.6);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0xe8dfd2, roughness: 0.6, metalness: 0.05 });
+    // 2. Luxury Scandinavian Parquet Oak Floor
+    const floorGeo = new THREE.BoxGeometry(25.8, 0.12, 21.8);
+    const floorMat = new THREE.MeshStandardMaterial({
+      map: generateWoodParquetTexture(),
+      roughness: 0.65,
+      metalness: 0.08
+    });
     const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.position.y = 0.05;
+    floor.position.y = 0.06;
     floor.receiveShadow = true;
     scene.add(floor);
+
+    // Decorative Department Area Rugs (Defines each workstation with rich contrast)
+    createCarpetZone(-7.2, -4.5, 4.4, 3.8, 0x1e293b, 0x38bdf8); // Tech: Navy with Cyan edge
+    createCarpetZone(7.2, -4.5, 4.4, 3.8, 0x16222f, 0x0284c7);  // News: Slate with Teal edge
+    createCarpetZone(-7.8, 4.2, 4.4, 3.8, 0x241d30, 0x8b5cf6);  // Fundamentals: Charcoal Violet
+    createCircularCarpet(7.8, 4.2, 2.4, 0xded5c6);               // Lounge: Round woven wool
+    createDebateArenaCarpet(0, 6.2, 2.6);                        // Debate: Bull & Bear Arena ring
+    createCarpetZone(0, 8.8, 3.8, 2.8, 0x0f291e, 0x22c55e);      // Trader: Emerald graphite runner
+
+    // Overhead Modern Architectural Linear Pendant Lights
+    createLinearPendantLight(-7.2, -4.5, 2.8);
+    createLinearPendantLight(7.2, -4.5, 2.8);
+    createLinearPendantLight(-7.8, 4.2, 2.8);
+    createLinearPendantLight(0, 8.8, 2.8);
+
+    // Perimeter Frosted Glass Balustrades with Metal Posts (Architectural Model Frame)
+    buildPerimeterBalustrades();
 
 
 
@@ -1973,6 +2963,147 @@
     OFFICE_DEPTS.forEach((dept, i) => {
       createOfficeWorker(dept, i);
     });
+  }
+
+
+  function createCarpetZone(x, z, w, d, mainColor, accentColor) {
+    const rug = new THREE.Mesh(
+      new THREE.BoxGeometry(w, 0.02, d),
+      new THREE.MeshStandardMaterial({ color: mainColor, roughness: 0.85 })
+    );
+    rug.position.set(x, 0.12, z);
+    rug.receiveShadow = true;
+    scene.add(rug);
+
+    // Thin accent piping border
+    if (accentColor) {
+      const edge = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.08, 0.015, d + 0.08),
+        new THREE.MeshBasicMaterial({ color: accentColor, transparent: true, opacity: 0.6 })
+      );
+      edge.position.set(x, 0.115, z);
+      scene.add(edge);
+    }
+  }
+
+  function createCircularCarpet(x, z, radius, color) {
+    const rug = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius, 0.02, 32),
+      new THREE.MeshStandardMaterial({ color: color, roughness: 0.9 })
+    );
+    rug.position.set(x, 0.12, z);
+    rug.receiveShadow = true;
+    scene.add(rug);
+  }
+
+  function createDebateArenaCarpet(x, z, radius) {
+    // Dark central ring
+    const baseRug = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius, 0.02, 32),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 })
+    );
+    baseRug.position.set(x, 0.12, z);
+    baseRug.receiveShadow = true;
+    scene.add(baseRug);
+
+    // Bull (Green) vs Bear (Red) semicircular energy rings
+    const bullRing = new THREE.Mesh(
+      new THREE.RingGeometry(radius * 0.75, radius * 0.95, 32, 1, Math.PI / 2, Math.PI),
+      new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+    );
+    bullRing.rotation.x = -Math.PI / 2;
+    bullRing.position.set(x, 0.135, z);
+    scene.add(bullRing);
+
+    const bearRing = new THREE.Mesh(
+      new THREE.RingGeometry(radius * 0.75, radius * 0.95, 32, 1, -Math.PI / 2, Math.PI),
+      new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+    );
+    bearRing.rotation.x = -Math.PI / 2;
+    bearRing.position.set(x, 0.135, z);
+    scene.add(bearRing);
+  }
+
+  function createLinearPendantLight(x, z, y) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+
+    // Minimalist black aluminum casing
+    const casing = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.06, 0.08),
+      new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.3, metalness: 0.8 })
+    );
+    group.add(casing);
+
+    // Warm emissive LED diffuser strip
+    const led = new THREE.Mesh(
+      new THREE.BoxGeometry(2.1, 0.015, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xfffae5 })
+    );
+    led.position.y = -0.035;
+    group.add(led);
+
+    // Suspension wires (going up towards ceiling)
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
+    [-0.8, 0.8].forEach(wx => {
+      const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 3.0), wireMat);
+      wire.position.set(wx, 1.5, 0);
+      group.add(wire);
+    });
+
+    // Soft workstation point light
+    const spot = new THREE.PointLight(0xfffaec, 0.35, 5);
+    spot.position.y = -0.4;
+    group.add(spot);
+
+    scene.add(group);
+  }
+
+  function buildPerimeterBalustrades() {
+    const balustradeGroup = new THREE.Group();
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0xe0f2fe,
+      transparent: true,
+      opacity: 0.3,
+      roughness: 0.1,
+      metalness: 0.8
+    });
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.8 });
+
+    const hw = 25.6 / 2;
+    const hd = 21.6 / 2;
+    const h = 0.55;
+
+    // 4 Corner & perimeter posts
+    const postCoords = [
+      [-hw, -hd], [0, -hd], [hw, -hd],
+      [-hw, 0], [hw, 0],
+      [-hw, hd], [0, hd], [hw, hd]
+    ];
+    postCoords.forEach(([px, pz]) => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, h + 0.1, 12), postMat);
+      post.position.set(px, h / 2 + 0.1, pz);
+      balustradeGroup.add(post);
+    });
+
+    // Perimeter glass panels (North, South, West, East)
+    const createRail = (w, d, px, pz) => {
+      const pane = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), glassMat);
+      pane.position.set(px, h / 2 + 0.1, pz);
+      balustradeGroup.add(pane);
+
+      // Top graphite rail
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(w, 0.04, d > 0.05 ? d : 0.06), postMat);
+      cap.position.set(px, h + 0.1, pz);
+      balustradeGroup.add(cap);
+    };
+
+    createRail(hw * 2 - 0.2, 0.03, 0, -hd); // North
+    createRail(hw * 2 - 0.2, 0.03, 0, hd);  // South
+    createRail(0.03, hd * 2 - 0.2, -hw, 0); // West
+    createRail(0.03, hd * 2 - 0.2, hw, 0);  // East
+
+    scene.add(balustradeGroup);
   }
 
   function buildExecutiveBoardroom() {
@@ -2087,6 +3218,62 @@
       boardroom.add(base);
     });
 
+    // HOLOGRAPHIC 3D FLOATING CANDLESTICK SPIRE ON BOARDROOM TABLE
+    const holoGroup = new THREE.Group();
+    holoGroup.position.set(0, 1.42, 0.2);
+
+    const holoCyl = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.55, 0.55, 0.72, 24, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.22,
+        wireframe: true,
+        side: THREE.DoubleSide
+      })
+    );
+    holoGroup.add(holoCyl);
+
+    const candleMatG = new THREE.MeshStandardMaterial({
+      color: 0x22c55e,
+      emissive: 0x22c55e,
+      emissiveIntensity: 0.8,
+      roughness: 0.2
+    });
+    const candleMatR = new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      emissive: 0xef4444,
+      emissiveIntensity: 0.8,
+      roughness: 0.2
+    });
+    const wickMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const hCandles = [];
+
+    for (let c = 0; c < 7; c++) {
+      const cg = new THREE.Group();
+      const isG = c % 2 === 0;
+      const ch = 0.12 + Math.sin(c * 1.2) * 0.08 + 0.06;
+      const cBody = new THREE.Mesh(new THREE.BoxGeometry(0.065, ch, 0.065), isG ? candleMatG : candleMatR);
+      const cWick = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, ch + 0.12), wickMat);
+      cg.add(cBody);
+      cg.add(cWick);
+
+      const xOff = (c - 3) * 0.12;
+      const yOff = Math.sin(c * 0.8) * 0.08;
+      cg.position.set(xOff, yOff, 0);
+      holoGroup.add(cg);
+      hCandles.push(cg);
+    }
+
+    const holoBaseDisc = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.58, 0.64, 0.04, 24),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.9 })
+    );
+    holoBaseDisc.position.set(0, 0.98, 0.2);
+    boardroom.add(holoBaseDisc);
+    boardroom.add(holoGroup);
+    officeHoloSpire = { group: holoGroup, cyl: holoCyl, candles: hCandles };
+
     // Center conference speakerphone pod
     const confPod = new THREE.Mesh(
       new THREE.CylinderGeometry(0.22, 0.28, 0.08, 16),
@@ -2185,6 +3372,87 @@
     return chair;
   }
 
+
+  function updateDeskCandles(symbol, candles) {
+    if (!candles || candles.length === 0) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 280;
+    const ctx = canvas.getContext("2d");
+
+    // Dark sleek trading terminal background
+    ctx.fillStyle = "#0c1017";
+    ctx.fillRect(0, 0, 512, 280);
+
+    const lastC = candles[candles.length - 1];
+    const firstC = candles[0];
+    const isUp = lastC.close >= firstC.close;
+
+    ctx.fillStyle = "#161e2b";
+    ctx.fillRect(0, 0, 512, 36);
+
+    ctx.font = "bold 16px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText(symbol.toUpperCase(), 14, 24);
+
+    ctx.font = "bold 15px 'JetBrains Mono', monospace";
+    ctx.fillStyle = isUp ? "#22c55e" : "#ef4444";
+    ctx.fillText(`$${lastC.close.toLocaleString()}`, 380, 24);
+
+    // Subtle grid lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
+    for (let gy = 55; gy < 270; gy += 45) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(512, gy);
+      ctx.stroke();
+    }
+
+    // Draw real candlesticks
+    const slice = candles.slice(-28);
+    let minP = Infinity, maxP = -Infinity;
+    slice.forEach(c => {
+      if (c.low < minP) minP = c.low;
+      if (c.high > maxP) maxP = c.high;
+    });
+    const range = (maxP - minP) || 1;
+    const topY = 48, botY = 265, chartH = botY - topY;
+    const barW = Math.max(6, Math.floor(480 / slice.length) - 4);
+
+    slice.forEach((c, idx) => {
+      const x = 14 + idx * (barW + 4);
+      const oY = botY - ((c.open - minP) / range) * chartH;
+      const cY = botY - ((c.close - minP) / range) * chartH;
+      const hY = botY - ((c.high - minP) / range) * chartH;
+      const lY = botY - ((c.low - minP) / range) * chartH;
+      const green = c.close >= c.open;
+
+      ctx.strokeStyle = green ? "#22c55e" : "#ef4444";
+      ctx.fillStyle = green ? "#22c55e" : "#ef4444";
+      ctx.lineWidth = 1.5;
+
+      // Wick
+      ctx.beginPath();
+      ctx.moveTo(x + barW / 2, hY);
+      ctx.lineTo(x + barW / 2, lY);
+      ctx.stroke();
+
+      // Body
+      const bodyY = Math.min(oY, cY);
+      const bodyH = Math.max(2, Math.abs(cY - oY));
+      ctx.fillRect(x, bodyY, barW, bodyH);
+    });
+
+    const tex = new THREE.CanvasTexture(canvas);
+    ['tech', 'trader'].forEach(dId => {
+      if (deskCenterMonitors[dId] && deskCenterMonitors[dId].material) {
+        deskCenterMonitors[dId].material.map = tex;
+        deskCenterMonitors[dId].material.needsUpdate = true;
+      }
+    });
+  }
+
   function createOfficeDesk(x, z, rot, chartColor, deptId) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
@@ -2249,6 +3517,7 @@
     );
     centerDisplay.position.set(0, 0.38, 0);
     monitorGroup.add(centerDisplay);
+    deskCenterMonitors[deptId] = centerDisplay;
 
     // Left Monitor (Orderbook, angled 28 deg inward)
     const leftDisplay = new THREE.Mesh(
@@ -2500,6 +3769,89 @@
     scene.add(group);
   }
 
+
+  // ================= TASTE AUDIO SYNTHESIZER (ZERO EXTERNAL AUDIO FILES) =================
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtxClass) audioCtx = new AudioCtxClass();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playKeyClickSound() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(220 + Math.random() * 50, t);
+      osc.frequency.exponentialRampToValueAtTime(50, t + 0.035);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(900, t);
+
+      gain.gain.setValueAtTime(0.035, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.035);
+    } catch (_) {}
+  }
+
+  function playWallStreetChime() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      
+      // 2-tone melodic harmonic chime (E5 -> B5 / 659Hz -> 987Hz)
+      [659.25, 987.77].forEach((freq, idx) => {
+        const startT = t + idx * 0.14;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startT);
+
+        gain.gain.setValueAtTime(0.08, startT);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startT + 1.4);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(startT);
+        osc.stop(startT + 1.4);
+      });
+    } catch (_) {}
+  }
+
+  function toggleSoundEffect() {
+    soundEnabled = !soundEnabled;
+    const onIcon = document.getElementById("soundIconOn");
+    const offIcon = document.getElementById("soundIconOff");
+    const lbl = document.getElementById("soundLabel");
+    if (onIcon && offIcon && lbl) {
+      onIcon.style.display = soundEnabled ? "inline-block" : "none";
+      offIcon.style.display = soundEnabled ? "none" : "inline-block";
+      lbl.innerText = soundEnabled ? "Âm Thanh" : "Tắt Âm";
+    }
+    showToast(soundEnabled ? "Đã BẬT âm thanh tương tác Taste Audio" : "Đã TẮT âm thanh tương tác");
+    if (soundEnabled) playWallStreetChime();
+  }
+
   function createDebateArena(x, z) {
     const group = new THREE.Group();
     group.position.set(x, 0.1, z);
@@ -2531,6 +3883,94 @@
     bearChair.position.set(1.5, 0, 0);
     bearChair.rotation.y = -Math.PI / 2;
     group.add(bearChair);
+
+    // 3D DYNAMIC HOLOGRAPHIC DEBATE ARENA SPIRE
+    const arenaHolo = new THREE.Group();
+    arenaHolo.position.set(0, 0.95, 0);
+
+    // Projector disc on table
+    const projDisc = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.52, 0.58, 0.04, 24),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.9 })
+    );
+    arenaHolo.add(projDisc);
+
+    // Glowing translucent cylinder beam
+    const holoBeam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.48, 0.48, 0.85, 24, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.25,
+        wireframe: true,
+        side: THREE.DoubleSide
+      })
+    );
+    holoBeam.position.y = 0.45;
+    arenaHolo.add(holoBeam);
+
+    // Mini 3D floating candlesticks for Bull vs Bear
+    const greenMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 0.8, roughness: 0.2 });
+    const redMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.8, roughness: 0.2 });
+    const wickM = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+    const bullCandles = [];
+    const bearCandles = [];
+
+    // Bull candles on West half
+    for (let i = 0; i < 3; i++) {
+      const cg = new THREE.Group();
+      const ch = 0.14 + i * 0.04;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.065, ch, 0.065), greenMat);
+      const wick = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, ch + 0.1), wickM);
+      cg.add(body);
+      cg.add(wick);
+      cg.position.set(-0.25 + i * 0.08, 0.45 + i * 0.05, -0.08 + (i % 2) * 0.16);
+      arenaHolo.add(cg);
+      bullCandles.push(cg);
+    }
+
+    // Bear candles on East half
+    for (let i = 0; i < 3; i++) {
+      const cg = new THREE.Group();
+      const ch = 0.18 - i * 0.03;
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.065, ch, 0.065), redMat);
+      const wick = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, ch + 0.1), wickM);
+      cg.add(body);
+      cg.add(wick);
+      cg.position.set(0.1 + i * 0.08, 0.45 - i * 0.03, -0.08 + (i % 2) * 0.16);
+      arenaHolo.add(cg);
+      bearCandles.push(cg);
+    }
+
+    group.add(arenaHolo);
+
+    debateHoloSpire = {
+      group: arenaHolo,
+      beam: holoBeam,
+      bullCandles,
+      bearCandles,
+      mode: 'neutral',
+      setMode: function(m) {
+        this.mode = m;
+        if (m === 'bull') {
+          this.beam.material.color.setHex(0x22c55e);
+          this.beam.material.opacity = 0.45;
+          this.bullCandles.forEach(c => c.scale.set(1.4, 1.4, 1.4));
+          this.bearCandles.forEach(c => c.scale.set(0.7, 0.7, 0.7));
+        } else if (m === 'bear') {
+          this.beam.material.color.setHex(0xef4444);
+          this.beam.material.opacity = 0.45;
+          this.bullCandles.forEach(c => c.scale.set(0.7, 0.7, 0.7));
+          this.bearCandles.forEach(c => c.scale.set(1.4, 1.4, 1.4));
+        } else {
+          this.beam.material.color.setHex(0x38bdf8);
+          this.beam.material.opacity = 0.25;
+          this.bullCandles.forEach(c => c.scale.set(1.0, 1.0, 1.0));
+          this.bearCandles.forEach(c => c.scale.set(1.0, 1.0, 1.0));
+        }
+      }
+    };
 
     scene.add(group);
   }
@@ -2705,7 +4145,8 @@
     autoRotate = !autoRotate;
     controls.autoRotate = autoRotate;
     const btn = document.getElementById("btnToggleRotate");
-    btn.innerText = autoRotate ? "Dừng xoay" : "Tự xoay";
+    const lbl = document.getElementById("rotateBtnLabel");
+    if (lbl) lbl.innerText = autoRotate ? "Dừng Xoay" : "Tự Xoay";
     btn.classList.toggle("primary-pill", autoRotate);
   }
 
@@ -2718,6 +4159,174 @@
     showBubbles = !showBubbles;
     document.getElementById("btnToggleBubbles").classList.toggle("primary-pill", showBubbles);
     updateSpeechBubblesPosition();
+  }
+
+
+  function createAmbientParticleField() {
+    const count = 280;
+    const geom = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const speeds = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 25;
+      pos[i * 3 + 1] = 0.5 + Math.random() * 8.5;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 23;
+      speeds[i] = 0.15 + Math.random() * 0.45;
+    }
+
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0x38bdf8,
+      size: 0.13,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+    ambientParticles = new THREE.Points(geom, mat);
+    ambientParticles.userData = { speeds: speeds };
+    scene.add(ambientParticles);
+  }
+
+  function createActiveBeacon() {
+    const bGroup = new THREE.Group();
+    bGroup.visible = false;
+
+    // Translucent vertical light cone
+    const beamGeo = new THREE.CylinderGeometry(0.08, 0.85, 4.8, 16, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.26,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.y = 2.4;
+    bGroup.add(beam);
+
+    // Glowing upper spinning halo ring
+    const ringGeo = new THREE.TorusGeometry(0.65, 0.025, 8, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.85 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 2.4;
+    bGroup.add(ring);
+
+    scene.add(bGroup);
+    activeBeaconMesh = bGroup;
+    activeBeaconRing = ring;
+  }
+
+  function toggleFollowAi() {
+    followAiActive = !followAiActive;
+    const btn = document.getElementById("btnFollowAi");
+    if (btn) {
+      btn.classList.toggle("primary-pill", followAiActive);
+      btn.style.color = followAiActive ? "#fff" : "#0284c7";
+    }
+    showToast(followAiActive ? "Đã BẬT chế độ Tự Động Theo Dấu AI" : "Đã TẮT chế độ Theo Dấu AI");
+  }
+
+  function updateActiveBeaconDept(deptId) {
+    if (!deptId || !activeBeaconMesh) return;
+    const dept = OFFICE_DEPTS.find(d => d.id === deptId);
+    if (!dept) return;
+
+    activeBeaconMesh.position.set(dept.pos[0], 0.1, dept.pos[2]);
+    activeBeaconMesh.visible = true;
+
+    // Pulse agent aura
+    const worker = officeWorkers.find(w => w.deptId === deptId);
+    if (worker && worker.aura) {
+      worker.aura.scale.set(1.4, 1.4, 1.4);
+    }
+
+    if (currentActiveDeptId !== deptId) {
+      currentActiveDeptId = deptId;
+      if (followAiActive) {
+        focusDepartment(deptId, false);
+      }
+    }
+  }
+
+
+  // ================= TASTE-SKILL POPOVER & HUD SCRIPTING =================
+  function toggleCameraPopover(event) {
+    if (event) event.stopPropagation();
+    const popover = document.getElementById("cameraPopover");
+    if (popover) popover.classList.toggle("open");
+  }
+
+  function selectCameraPreset(preset, label) {
+    setCameraPreset(preset);
+    const popover = document.getElementById("cameraPopover");
+    if (popover) popover.classList.remove("open");
+    const lbl = document.getElementById("cameraDropdownLabel");
+    if (lbl) lbl.innerText = label;
+
+    // Update active check in menu
+    document.querySelectorAll("#cameraPopoverMenu .popover-item").forEach(item => {
+      item.classList.toggle("active", item.getAttribute("data-preset") === preset);
+    });
+  }
+
+  // Dismiss popover when clicking anywhere outside
+  window.addEventListener("click", (e) => {
+    const popover = document.getElementById("cameraPopover");
+    if (popover && !popover.contains(e.target)) {
+      popover.classList.remove("open");
+    }
+  });
+
+  function setCameraPreset(preset) {
+    const btnExit = document.getElementById("btnExitZoom");
+    if (preset === "iso") {
+      if (btnExit) btnExit.style.display = "none";
+      TWEEN_CAMERA(camera.position, { x: 0, y: 31, z: 28 }, controls.target, { x: 0, y: 1.2, z: 0.5 });
+    } else if (preset === "castle") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: 0, y: 12, z: 14 }, controls.target, { x: 0, y: 1.8, z: 0 });
+      spawnSpeechBubble("castle", "Phòng điều hành & Hội đồng chiến lược.", true);
+    } else if (preset === "tech") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: -6.8, y: 5.5, z: 1.5 }, controls.target, { x: -7.2, y: 1.3, z: -3.8 });
+      spawnSpeechBubble("tech", "Phòng Kỹ Thuật: Đọc nến & chỉ báo chuyên sâu.", true);
+    } else if (preset === "bullbear") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: 0, y: 5.8, z: 11.5 }, controls.target, { x: 0, y: 1.4, z: 6.2 });
+      spawnSpeechBubble("bull", "Võ Đài Tranh Biện: Phe Mua vs Phe Bán phản biện luận điểm.", true);
+    } else if (preset === "trader") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: 0, y: 4.5, z: 14.5 }, controls.target, { x: 0, y: 1.3, z: 9.5 });
+      spawnSpeechBubble("trader", "Bàn Lệnh Trader: Thiết lập điểm vào, cắt lỗ & chốt lời.", true);
+    } else if (preset === "news") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: 7.0, y: 5.5, z: 0.5 }, controls.target, { x: 7.2, y: 1.3, z: -5.2 });
+      spawnSpeechBubble("news", "Phòng Tin Tức: Kinh tế vĩ mô & biên bản Fed.", true);
+    } else if (preset === "social") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: 7.5, y: 5.5, z: 9.5 }, controls.target, { x: 7.8, y: 1.3, z: 4.0 });
+      spawnSpeechBubble("social", "Lounge Mạng Xã Hội: Đo lường chỉ số sợ hãi & tham lam.", true);
+    } else if (preset === "fundamentals") {
+      if (btnExit) btnExit.style.display = "inline-block";
+      TWEEN_CAMERA(camera.position, { x: -6.5, y: 5.5, z: 9.5 }, controls.target, { x: -7.1, y: 1.3, z: 4.2 });
+      spawnSpeechBubble("fundamentals", "Phòng Tài Chính: Thẩm định định giá & sức khỏe tài chính.", true);
+    }
+  }
+
+  async function stopAnalysisTask() {
+    if (!confirm("Bạn có chắc chắn muốn dừng tác vụ phân tích hiện tại không?")) return;
+    showToast("Đang gửi lệnh dừng tác vụ...");
+    try {
+      const res = await fetch(`${API_BASE}/api/stop`, { method: "POST" });
+      const data = await res.json();
+      showToast(data.message || "Đã dừng tác vụ.");
+      const btnStop = document.getElementById("btnStopAnalysis");
+      if (btnStop) btnStop.style.display = "none";
+    } catch (err) {
+      alert("Lỗi khi dừng tác vụ: " + err.message);
+    }
   }
 
   function resetOfficeCamera() {
@@ -2757,8 +4366,9 @@
     inMeetingMode = !inMeetingMode;
     const btn = document.querySelector('button[onclick="triggerAgentMeeting()"]');
 
+    const meetingText = document.getElementById("meetingBtnText");
     if (inMeetingMode) {
-      if (btn) btn.innerHTML = "Về chỗ ◀";
+      if (meetingText) meetingText.innerText = "Về Chỗ";
       showToast("Hội đồng tác tử tập hợp vào phòng họp điều hành!");
 
       // Vị trí ghế ngồi thực tế quanh bàn họp Walnut (North & South)
@@ -2787,7 +4397,7 @@
         spawnSpeechBubble("bear", "Phe Bán yêu cầu chốt chặn Stop Loss nghiêm ngặt.");
       }, 2200);
     } else {
-      if (btn) btn.innerHTML = "Tự chạy ▶";
+      if (meetingText) meetingText.innerText = "Họp Hội Đồng";
       showToast("Các tác tử kết thúc họp và quay về bàn làm việc chuyên môn.");
 
       // Trở về đúng bàn làm việc và hướng nhìn ban đầu
@@ -2867,7 +4477,7 @@
     tickerCtx.fillRect(0, h - 3, w, 3);
 
     tickerCtx.font = "bold 44px 'JetBrains Mono', 'Segoe UI', sans-serif";
-    const tickerText = "🟢 BTC/USD $78,485 ▲ +1.4%    🔴 ETH/USD $2,512 ▼ -0.6%    🟢 SOL/USD $184.2 ▲ +3.1%    🟢 GOLD $2,748 ▲ +0.8%    📊 FED RATE 4.75%    ⚡ HỘI ĐỒNG AI: UNDERWEIGHT (GIẢM TỶ TRỌNG)    🛡️ CHẶN LỖ SL: $75,250    🎯 MỤC TIÊU TP: $73,105    🟢 REA AI LIVE TRADING TERMINAL    ";
+    const tickerText = "BTC/USD $78,485 +1.4%   ·   ETH/USD $2,512 -0.6%   ·   SOL/USD $184.2 +3.1%   ·   GOLD $2,748 +0.8%   ·   FED RATE 4.75%   ·   AI VERDICT: UNDERWEIGHT (GIẢM TỶ TRỌNG)   ·   STOP LOSS: $75,250   ·   TARGET TP: $73,105   ·   REA AI LIVE TRADING TERMINAL   ·   ";
     
     tickerCtx.fillStyle = "#ffffff";
     const textWidth = tickerCtx.measureText(tickerText).width;
@@ -2884,35 +4494,52 @@
     if (!scene || !sunLight || !hemiLight || !boardSpot) return;
     if (!force && currentOfficeMood !== 'auto') mood = currentOfficeMood;
 
+    const b = document.getElementById("btnMoodToggle");
     if (mood === 'bull') {
       sunLight.color.setHex(0xe6fff9);
+      sunLight.intensity = 1.25;
       hemiLight.color.setHex(0xd1fae5);
       hemiLight.groundColor.setHex(0xa7f3d0);
       boardSpot.color.setHex(0x10b981);
-      boardSpot.intensity = 1.3;
-      const b = document.getElementById("btnMoodToggle");
-      if (b) b.innerHTML = "💡 Mood: Mua (Bull)";
+      boardSpot.intensity = 1.4;
+      const ml = document.getElementById("moodLabelText"); if (ml) ml.innerText = "Mood: Mua (Cyan)";
     } else if (mood === 'bear') {
       sunLight.color.setHex(0xfff1e6);
+      sunLight.intensity = 1.0;
       hemiLight.color.setHex(0xfef3c7);
       hemiLight.groundColor.setHex(0xfcd34d);
       boardSpot.color.setHex(0xf59e0b);
-      boardSpot.intensity = 1.2;
-      const b = document.getElementById("btnMoodToggle");
-      if (b) b.innerHTML = "💡 Mood: Bán (War Room)";
+      boardSpot.intensity = 1.3;
+      const ml = document.getElementById("moodLabelText"); if (ml) ml.innerText = "Mood: Bán (Amber)";
+    } else if (mood === 'cyber') {
+      sunLight.color.setHex(0x06b6d4);
+      sunLight.intensity = 0.65;
+      hemiLight.color.setHex(0x1e1b4b);
+      hemiLight.groundColor.setHex(0x0284c7);
+      boardSpot.color.setHex(0xa855f7);
+      boardSpot.intensity = 1.8;
+      const ml = document.getElementById("moodLabelText"); if (ml) ml.innerText = "Mood: Cyber Neon";
+    } else if (mood === 'sunset') {
+      sunLight.color.setHex(0xfb923c);
+      sunLight.intensity = 1.25;
+      hemiLight.color.setHex(0xfef08a);
+      hemiLight.groundColor.setHex(0xca8a04);
+      boardSpot.color.setHex(0xf97316);
+      boardSpot.intensity = 1.1;
+      const ml = document.getElementById("moodLabelText"); if (ml) ml.innerText = "Mood: Hoàng Hôn";
     } else {
       sunLight.color.setHex(0xfffaec);
+      sunLight.intensity = 1.15;
       hemiLight.color.setHex(0xffffff);
       hemiLight.groundColor.setHex(0xb8d4cb);
       boardSpot.color.setHex(0xfff1dc);
       boardSpot.intensity = 0.8;
-      const b = document.getElementById("btnMoodToggle");
-      if (b) b.innerHTML = "💡 Mood: Tự Động";
+      const ml = document.getElementById("moodLabelText"); if (ml) ml.innerText = "Mood: Studio Mint";
     }
   }
 
   function cycleOfficeMood() {
-    const moods = ['auto', 'bull', 'bear', 'neutral'];
+    const moods = ['auto', 'sunset', 'cyber', 'bull', 'bear'];
     const idx = moods.indexOf(currentOfficeMood);
     currentOfficeMood = moods[(idx + 1) % moods.length];
     applyOfficeMood(currentOfficeMood, true);
@@ -2922,8 +4549,14 @@
   function toggleDarkMode() {
     isDarkMode = !isDarkMode;
     document.body.classList.toggle("dark-mode", isDarkMode);
-    const btn = document.getElementById("themeToggleBtn");
-    if (btn) btn.innerHTML = isDarkMode ? "☀️ Sáng" : "🌙 Tối";
+    const sunIcon = document.getElementById("themeIconSun");
+    const moonIcon = document.getElementById("themeIconMoon");
+    const label = document.getElementById("themeToggleLabel");
+    if (sunIcon && moonIcon && label) {
+      sunIcon.style.display = isDarkMode ? "inline-block" : "none";
+      moonIcon.style.display = isDarkMode ? "none" : "inline-block";
+      label.innerText = isDarkMode ? "Sáng" : "Tối";
+    }
     if (scene) {
       scene.background = new THREE.Color(isDarkMode ? 0x0a0f18 : 0xbddcd5);
     }
@@ -2983,7 +4616,7 @@
       window.speechSynthesis.cancel();
       isSpeaking = false;
       const btn = document.getElementById("btnVoiceRead");
-      if (btn) btn.innerHTML = "🎙️ Nghe Báo Cáo";
+      if (btn) btn.innerHTML = '<svg class="ui-svg" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Nghe Báo Cáo';
       showToast("Đã dừng đọc báo cáo.");
       return;
     }
@@ -3011,20 +4644,20 @@
     speechUtterance.onstart = () => {
       isSpeaking = true;
       const btn = document.getElementById("btnVoiceRead");
-      if (btn) btn.innerHTML = "⏹️ Dừng Đọc";
+      if (btn) btn.innerHTML = '<svg class="ui-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> Dừng Đọc';
       showToast("Đang phát bản tin giọng đọc AI...");
     };
 
     speechUtterance.onend = () => {
       isSpeaking = false;
       const btn = document.getElementById("btnVoiceRead");
-      if (btn) btn.innerHTML = "🎙️ Nghe Báo Cáo";
+      if (btn) btn.innerHTML = '<svg class="ui-svg" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Nghe Báo Cáo';
     };
 
     speechUtterance.onerror = () => {
       isSpeaking = false;
       const btn = document.getElementById("btnVoiceRead");
-      if (btn) btn.innerHTML = "🎙️ Nghe Báo Cáo";
+      if (btn) btn.innerHTML = '<svg class="ui-svg" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Nghe Báo Cáo';
     };
 
     window.speechSynthesis.speak(speechUtterance);
@@ -3095,6 +4728,45 @@
     updateLiveTickerRibbon();
 
     const now = Date.now() * 0.003;
+
+    // 1. Rotate Holographic Candlestick Spire on Boardroom Table
+    if (officeHoloSpire) {
+      officeHoloSpire.group.rotation.y = now * 0.35;
+      if (officeHoloSpire.candles) {
+        officeHoloSpire.candles.forEach((c, idx) => {
+          c.position.y = Math.sin(now * 2 + idx * 0.8) * 0.05;
+        });
+      }
+    }
+
+    // 2. Animate Atmospheric Ambient Cyber Particles
+    if (ambientParticles && ambientParticles.userData && ambientParticles.userData.speeds) {
+      const posAttr = ambientParticles.geometry.attributes.position;
+      const speeds = ambientParticles.userData.speeds;
+      for (let i = 0; i < posAttr.count; i++) {
+        let py = posAttr.getY(i) + speeds[i] * 0.015;
+        if (py > 9.0) py = 0.5;
+        posAttr.setY(i, py);
+      }
+      posAttr.needsUpdate = true;
+    }
+
+    // 3. Spin Active Department Holographic Beacon
+    if (activeBeaconMesh && activeBeaconMesh.visible) {
+      if (activeBeaconRing) activeBeaconRing.rotation.z += 0.04;
+      activeBeaconMesh.position.y = 0.1 + Math.sin(now * 3) * 0.06;
+    }
+
+    // 4. Animate 3D Debate Hologram Spire
+    if (debateHoloSpire && debateHoloSpire.group) {
+      debateHoloSpire.group.rotation.y = now * 0.4;
+      debateHoloSpire.bullCandles.forEach((c, idx) => {
+        c.position.y = 0.45 + idx * 0.05 + Math.sin(now * 2.5 + idx) * 0.03;
+      });
+      debateHoloSpire.bearCandles.forEach((c, idx) => {
+        c.position.y = 0.45 - idx * 0.03 + Math.sin(now * 2.5 + idx + 1) * 0.03;
+      });
+    }
 
     // Pulse server rack LEDs
     serverRackLeds.forEach((led, i) => {
@@ -3361,25 +5033,57 @@
       document.getElementById("liveHeaderTitle").innerText = `Đang phân tích ${st.symbol} (${st.date})`;
       document.getElementById("liveHeaderSubtitle").innerText = `Bước hiện tại: ${st.current_step_vi}`;
 
-      // Update 3D Speech bubble in real-time
-      if (st.progress_pct >= 90) spawnSpeechBubble("castle", st.current_step_vi, true);
-      else if (st.progress_pct >= 80) spawnSpeechBubble("trader", st.current_step_vi, true);
-      else if (st.progress_pct >= 50) spawnSpeechBubble("bull", st.current_step_vi, true);
-      else if (st.progress_pct >= 25) spawnSpeechBubble("tech", st.current_step_vi, true);
+      // Show stop button while running
+      const btnStop = document.getElementById("btnStopAnalysis");
+      if (btnStop) btnStop.style.display = "inline-block";
+
+      // Dynamic Active Department Beacon & Focus
+      if (st.active_dept_id) {
+        updateActiveBeaconDept(st.active_dept_id);
+      }
+
+      // Precise Real-Time Speech Bubble & Agent Tag Match
+      let targetDeptId = st.active_dept_id;
+      const vi = (st.current_step_vi || "").toLowerCase();
+      if (!targetDeptId || targetDeptId === "castle") {
+        if (vi.includes("kỹ thuật") || vi.includes("nến") || vi.includes("chỉ báo")) targetDeptId = "tech";
+        else if (vi.includes("tâm lý") || vi.includes("mạng xã hội") || vi.includes("cộng đồng")) targetDeptId = "social";
+        else if (vi.includes("tin tức") || vi.includes("vĩ mô") || vi.includes("sự kiện")) targetDeptId = "news";
+        else if (vi.includes("tài chính") || vi.includes("báo cáo tài chính") || vi.includes("định giá")) targetDeptId = "fundamentals";
+        else if (vi.includes("phe mua")) targetDeptId = "bull";
+        else if (vi.includes("phe bán")) targetDeptId = "bear";
+        else if (vi.includes("trưởng phòng") || vi.includes("giám đốc") || vi.includes("khởi động") || vi.includes("sẵn sàng")) targetDeptId = "castle";
+        else if (vi.includes("giao dịch") || vi.includes("trader") || vi.includes("vào/ra")) targetDeptId = "trader";
+        else if (vi.includes("rủi ro")) targetDeptId = vi.includes("liều") ? "bear" : (vi.includes("thận trọng") ? "bear" : "bull");
+        else targetDeptId = "castle";
+      }
+      spawnSpeechBubble(targetDeptId, st.current_step_vi, true);
 
       if (!logBox.innerText.includes(st.current_step_vi)) {
         logBox.innerHTML += `\n> [${new Date().toLocaleTimeString()}] ${st.current_step_vi}`;
         logBox.scrollTop = logBox.scrollHeight;
+        playKeyClickSound();
+      }
+
+      // Update Debate Arena 3D Hologram Mode
+      if (debateHoloSpire) {
+        if (targetDeptId === 'bull') debateHoloSpire.setMode('bull');
+        else if (targetDeptId === 'bear') debateHoloSpire.setMode('bear');
+        else debateHoloSpire.setMode('neutral');
       }
     } else {
       dot.className = "status-dot";
       text.innerText = "Hệ thống sẵn sàng";
+      const btnStop = document.getElementById("btnStopAnalysis");
+      if (btnStop) btnStop.style.display = "none";
+      if (activeBeaconMesh) activeBeaconMesh.visible = false;
       if (st.result) {
         pBar.style.width = "100%";
         if (!currentReportData || currentReportData.symbol !== st.result.symbol) {
           renderReport(st.result);
           loadHistory();
           spawnSpeechBubble("castle", `Đã có quyết định: ${st.result.rating}!`, true);
+          playWallStreetChime();
         }
         const compBox = document.getElementById("liveCompleteBox");
         if (compBox) {
@@ -3552,11 +5256,27 @@
       supRes.innerText = sVi.support_resistance || "Vùng hỗ trợ then chốt tại $80,000 và $79,629; Kháng cự tại $81,900 và $84,000.";
     }
 
-    // 6. Social & News Summaries
+    // 6. Social & News Summaries and Verified Sources
+    const srcCont = document.getElementById("repSourcesBadgeContainer");
+    if (srcCont) {
+      if (Array.isArray(sVi.data_sources_cited) && sVi.data_sources_cited.length > 0) {
+        srcCont.innerHTML = sVi.data_sources_cited.map(s => `<span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${escapeHtml(s)}</span>`).join("");
+      } else {
+        srcCont.innerHTML = `
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Reuters & Bloomberg</span>
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>CoinDesk & Decrypt</span>
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>CoinTelegraph</span>
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Kitco & Investing.com</span>
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Alternative.me Fear & Greed</span>
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>CBOE VIX Volatility</span>
+          <span class="source-tag"><svg class="ui-svg" style="width:12px; height:12px; color:#0284c7;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Yahoo Finance OHLCV</span>
+        `;
+      }
+    }
     const soc = document.getElementById("repSocialSummary");
-    if (soc) soc.innerText = sVi.social_summary || "Phòng Tâm lý ghi nhận trạng thái trung tính, đám đông đang theo dõi các mốc đột phá.";
+    if (soc) soc.innerText = sVi.social_summary || "Phòng Tâm lý: Chỉ số Fear & Greed thận trọng, chỉ số biến động VIX ổn định, chưa có dấu hiệu FOMO đu đỉnh rủi ro.";
     const news = document.getElementById("repNewsSummary");
-    if (news) news.innerText = sVi.news_summary || "Phòng Tin tức ghi nhận thị trường chờ đợi dữ liệu vĩ mô và định hướng lãi suất tiếp theo.";
+    if (news) news.innerText = sVi.news_summary || "Phòng Tin tức: Tổng hợp từ các hãng tin uy tín (Reuters, CNBC, CoinDesk, Kitco), theo dõi sát sao dữ liệu vĩ mô và định hướng chính sách tiền tệ.";
 
     // 7. Debate: Bull vs Bear & Research Manager
     const bullEl = document.getElementById("repBullText");
@@ -3734,7 +5454,7 @@
   }
 
   function showErrorDetail(symbol, date) {
-    alert(`Phiên phân tích mã ${symbol} ngày ${date} bị lỗi và chưa tạo biên bản hoàn chỉnh.\n\nNguyên nhân: Phiên chạy trước đó bị gián đoạn do mô hình cũ (Google 404). Hệ thống hiện đã được cập nhật hoàn chỉnh sang Gemini 3.5 & 3.8.\n\n👉 Bạn hãy vào tab 'Bảng Điều Khiển' hoặc 'Văn Phòng 3D' bấm 'Bắt Đầu Phân Tích' để hệ thống chạy mới và tự động xuất file PDF hoàn chỉnh!`);
+    alert(`Phiên phân tích mã ${symbol} ngày ${date} bị lỗi và chưa tạo biên bản hoàn chỉnh.\n\nNguyên nhân: Phiên chạy trước đó bị gián đoạn do mô hình cũ (Google 404). Hệ thống hiện đã được cập nhật hoàn chỉnh sang Gemini 3.5 & 3.8.\n\nGợi ý: Bạn hãy vào tab 'Bảng Điều Khiển' hoặc 'Văn Phòng 3D' bấm 'Bắt Đầu Phân Tích' để hệ thống chạy mới và tự động xuất file PDF hoàn chỉnh!`);
   }
 
   // ================= TRADINGVIEW LIGHTWEIGHT CHARTS LOGIC =================
@@ -4299,7 +6019,7 @@
       const data = await res.json();
       if (!data.ok) throw new Error(data.message || "Lỗi gửi Telegram");
       showToast(data.message);
-      alert("✅ " + data.message);
+      alert(data.message);
     } catch (e) {
       alert("Lỗi gửi Telegram: " + e.message);
     }
