@@ -1,10 +1,14 @@
+import logging
 import re
+import time
 from typing import Any
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from .base_client import BaseLLMClient, normalize_content
 from .validators import validate_model
+
+logger = logging.getLogger(__name__)
 
 _GEMINI_VERSION = re.compile(r"^gemini-(\d+)\.(\d+)")
 
@@ -21,14 +25,47 @@ def _accepts_minimal_thinking(model: str) -> bool:
 
 
 class NormalizedChatGoogleGenerativeAI(ChatGoogleGenerativeAI):
-    """ChatGoogleGenerativeAI with normalized content output.
+    """ChatGoogleGenerativeAI with normalized content output and resilient retry.
 
     Gemini 3 models return content as list of typed blocks.
     This normalizes to string for consistent downstream handling.
+    Automatically retries transient 503 UNAVAILABLE (high demand spikes)
+    and 429 RESOURCE_EXHAUSTED errors with exponential backoff.
     """
 
     def invoke(self, input, config=None, **kwargs):
-        return normalize_content(super().invoke(input, config, **kwargs))
+        max_attempts = 5
+        base_delay = 3
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return normalize_content(super().invoke(input, config, **kwargs))
+            except Exception as e:
+                err_str = str(e).lower()
+                is_transient = any(
+                    code in err_str
+                    for code in (
+                        "503",
+                        "unavailable",
+                        "429",
+                        "resource_exhausted",
+                        "high demand",
+                        "rate limit",
+                        "deadline exceeded",
+                        "connection reset",
+                    )
+                )
+                if is_transient and attempt < max_attempts:
+                    sleep_time = base_delay * (2 ** (attempt - 1))
+                    logger.warning(
+                        "Gemini API transient error (%s). Retrying in %ss (attempt %s/%s)...",
+                        e,
+                        sleep_time,
+                        attempt,
+                        max_attempts,
+                    )
+                    time.sleep(sleep_time)
+                    continue
+                raise
 
 
 # The read timeout the OpenAI and Anthropic SDKs use by default.
