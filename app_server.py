@@ -39,8 +39,28 @@ if str(ROOT_DIR) not in sys.path:
 RESULTS_DIR = ROOT_DIR / "Kết quả"
 RESULTS_DIR.mkdir(exist_ok=True)
 CONFIG_FILE = ROOT_DIR / "config_user.json"
+SCHEDULER_FILE = ROOT_DIR / "config_scheduler.json"
 WEB_DIR = ROOT_DIR / "web"
 WEB_DIR.mkdir(exist_ok=True)
+
+def load_scheduler_config() -> dict:
+    default_cfg = {
+        "enabled": False,
+        "hours": ["08:00", "14:00", "20:00"],
+        "symbols": ["BTC-USD", "XAU"],
+        "send_telegram": True,
+        "last_run": ""
+    }
+    if SCHEDULER_FILE.exists():
+        try:
+            saved = json.loads(SCHEDULER_FILE.read_text(encoding="utf-8"))
+            default_cfg.update(saved)
+        except Exception:
+            pass
+    return default_cfg
+
+def save_scheduler_config(cfg: dict):
+    SCHEDULER_FILE.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
 
 # Vietnamese translation for LangGraph agent nodes
 DEPT_NODE_MAP = {
@@ -88,6 +108,7 @@ EXECUTION_STATE = {
     "current_step_vi": "Hệ thống sẵn sàng",
     "active_dept_id": "",
     "node_history": [],
+    "live_debates": [],
     "ai_calls": 0,
     "start_time": 0,
     "elapsed_seconds": 0,
@@ -637,6 +658,7 @@ def run_analysis_worker(params: dict):
             "current_step_vi": "Khởi tạo môi trường AI và kiểm tra tham số",
             "active_dept_id": "castle",
             "node_history": ["Khởi động"],
+            "live_debates": [],
             "ai_calls": 0,
             "start_time": time.time(),
             "elapsed_seconds": 0,
@@ -671,6 +693,8 @@ def run_analysis_worker(params: dict):
 
         class LiveStreamCallback(BaseCallbackHandler):
             def on_chat_model_start(self, serialized, messages, *, run_id=None, metadata=None, **kw):
+                if not EXECUTION_STATE.get("is_running", True):
+                    raise InterruptedError("Tác vụ đã được dừng bởi người dùng.")
                 try:
                     md = metadata or {}
                     node = md.get("langgraph_node", "")
@@ -701,6 +725,42 @@ def run_analysis_worker(params: dict):
                 except Exception:
                     pass
 
+            def on_chat_model_end(self, response, *, run_id=None, parent_run_id=None, **kwargs):
+                try:
+                    if not response or not response.generations:
+                        return
+                    gen = response.generations[0][0]
+                    text = gen.text if hasattr(gen, "text") and gen.text else getattr(gen, "message", None)
+                    if hasattr(text, "content"):
+                        text = str(text.content)
+                    else:
+                        text = str(text) if text else ""
+                    text = text.strip()
+                    if not text or len(text) < 10:
+                        return
+
+                    # Format snippet into clean 1-2 sentence preview
+                    first_para = text.split("\n\n")[0].replace("\n", " ").strip()
+                    snippet = first_para[:260] + ("..." if len(first_para) > 260 else "")
+
+                    with STATE_LOCK:
+                        if "live_debates" not in EXECUTION_STATE:
+                            EXECUTION_STATE["live_debates"] = []
+                        step_vi = EXECUTION_STATE.get("current_step_vi", "")
+                        node = EXECUTION_STATE.get("current_step", "")
+                        dept = EXECUTION_STATE.get("active_dept_id", "castle")
+                        EXECUTION_STATE["live_debates"].append({
+                            "node": node,
+                            "dept": dept,
+                            "speaker": step_vi,
+                            "time": datetime.now().strftime("%H:%M:%S"),
+                            "snippet": snippet
+                        })
+                        if len(EXECUTION_STATE["live_debates"]) > 40:
+                            EXECUTION_STATE["live_debates"] = EXECUTION_STATE["live_debates"][-40:]
+                except Exception:
+                    pass
+
         cb = LiveStreamCallback()
     except Exception as e:
         cb = None
@@ -716,8 +776,8 @@ def run_analysis_worker(params: dict):
         if provider == "google":
             if not quick_model or "2.5" in str(quick_model):
                 quick_model = "gemini-3.5-flash-lite"
-            if not deep_model or "2.5" in str(deep_model):
-                deep_model = "gemini-3.8-flash"
+            if not deep_model or "2.5" in str(deep_model) or deep_model == "gemini-3.8-flash":
+                deep_model = "gemini-3.5-flash-lite"
         if quick_model:
             cfg["quick_think_llm"] = quick_model
         if deep_model:
@@ -1106,6 +1166,10 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json({"history": scan_history()})
             return
 
+        elif path == "/api/scheduler":
+            self._send_json(load_scheduler_config())
+            return
+
         elif path == "/api/report":
             symbol = query.get("symbol", [""])[0]
             date = query.get("date", [""])[0]
@@ -1284,6 +1348,11 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json({"ok": True, "message": "Đã bắt đầu phân tích đa tác tử trong nền!"})
             return
 
+        elif path == "/api/scheduler":
+            save_scheduler_config(payload)
+            self._send_json({"ok": True, "message": "Đã lưu cài đặt lập lịch tự động!", "config": load_scheduler_config()})
+            return
+
         elif path == "/api/test_telegram":
             bot_token = payload.get("bot_token", "")
             chat_id = payload.get("chat_id", "")
@@ -1331,13 +1400,47 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
 
+def _background_scheduler_loop():
+    while True:
+        try:
+            cfg = load_scheduler_config()
+            if cfg.get("enabled"):
+                now_str = datetime.now().strftime("%H:%M")
+                today_str = datetime.now().strftime("%Y-%m-%d")
+                run_tag = f"{today_str}_{now_str}"
+                if now_str in cfg.get("hours", []) and cfg.get("last_run") != run_tag:
+                    with STATE_LOCK:
+                        is_busy = EXECUTION_STATE["is_running"]
+                    if not is_busy:
+                        cfg["last_run"] = run_tag
+                        save_scheduler_config(cfg)
+                        symbols = cfg.get("symbols", ["BTC-USD"])
+                        sym = symbols[0] if symbols else "BTC-USD"
+                        user_cfg = load_user_config()
+                        provider = user_cfg.get("provider", "google")
+                        api_key = (user_cfg.get("api_keys") or {}).get(provider, "")
+                        params = {
+                            "symbol": sym,
+                            "date": today_str,
+                            "provider": provider,
+                            "api_key": api_key,
+                            "analysts": ["market", "social", "news"]
+                        }
+                        threading.Thread(target=run_analysis_worker, args=(params,), daemon=True).start()
+        except Exception as e:
+            print("Scheduler loop warning:", e)
+        time.sleep(30)
+
+
 def run_server(port=8888):
+    # Launch background scheduler thread
+    threading.Thread(target=_background_scheduler_loop, daemon=True).start()
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), StudioHTTPRequestHandler)
-    print(f"\n=======================================================")
-    print(f"  AI TRADING STUDIO - APPLE DESIGN EDITION")
+    print("\n=======================================================")
+    print("  AI TRADING STUDIO - APPLE DESIGN EDITION")
     print(f"  Website đang chạy tại: http://127.0.0.1:{port}")
-    print(f"  Bấm Ctrl+C để dừng máy chủ.")
-    print(f"=======================================================\n")
+    print("  Bấm Ctrl+C để dừng máy chủ.")
+    print("=======================================================\n")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

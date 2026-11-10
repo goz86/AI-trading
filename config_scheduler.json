@@ -1,0 +1,13 @@
+{
+  "hours": [
+    "08:00",
+    "14:00",
+    "20:00"
+  ],
+  "symbols": [
+    "BTC-USD",
+    "XAU"
+  ],
+  "send_telegram": true,
+  "enabled": true
+}

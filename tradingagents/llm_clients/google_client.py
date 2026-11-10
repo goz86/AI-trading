@@ -36,11 +36,33 @@ class NormalizedChatGoogleGenerativeAI(ChatGoogleGenerativeAI):
     def invoke(self, input, config=None, **kwargs):
         max_attempts = 5
         base_delay = 3
+        fallback_models = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
         for attempt in range(1, max_attempts + 1):
             try:
                 return normalize_content(super().invoke(input, config, **kwargs))
             except Exception as e:
                 err_str = str(e).lower()
+
+                # Handle daily free-tier quota limit (e.g. 20 requests/day on preview models)
+                is_quota_exhausted = (
+                    "quota exceeded" in err_str
+                    or "limit exceeded on free tier" in err_str
+                    or "requests per day limit exceeded" in err_str
+                )
+                if is_quota_exhausted and fallback_models:
+                    next_model = fallback_models.pop(0)
+                    if next_model != getattr(self, "model", ""):
+                        logger.warning(
+                            "Model %s hit daily quota limit (%s). Automatically falling back to %s...",
+                            getattr(self, "model", "unknown"),
+                            e,
+                            next_model,
+                        )
+                        self.model = next_model
+                        time.sleep(1)
+                        continue
+
+                # Handle transient 503 or momentary 429
                 is_transient = any(
                     code in err_str
                     for code in (
@@ -54,8 +76,8 @@ class NormalizedChatGoogleGenerativeAI(ChatGoogleGenerativeAI):
                         "connection reset",
                     )
                 )
-                if is_transient and attempt < max_attempts:
-                    sleep_time = base_delay * (2 ** (attempt - 1))
+                if is_transient and not is_quota_exhausted and attempt < max_attempts:
+                    sleep_time = min(base_delay * (2 ** (attempt - 1)), 20)
                     logger.warning(
                         "Gemini API transient error (%s). Retrying in %ss (attempt %s/%s)...",
                         e,

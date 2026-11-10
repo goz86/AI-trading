@@ -985,6 +985,13 @@
             <span>Bong Bóng</span>
           </button>
 
+          <!-- Live Debate Stream Drawer Button (Hướng 1) -->
+          <button class="hud-btn" id="btnDebateDrawer" onclick="toggleDebateDrawer()" title="Mở luồng tranh luận thời gian thực Phe Mua vs Phe Bán">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            <span>Tranh Biện AI</span>
+            <span id="debateCountBadge" style="display:none; background:#822727; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; margin-left:2px;">0</span>
+          </button>
+
           <!-- Projector Screen Toggle Button -->
           <button class="hud-btn accent-green" id="btnProjector" onclick="toggleOfficeProjector()">
             <svg class="ui-svg" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/><path d="M7 9v2"/><path d="M12 7v4"/><path d="M17 10v3"/></svg>
@@ -1076,6 +1083,28 @@
           <span id="projSL" style="display:none;">-</span>
         </div>
         <div id="projectorChartContainer" style="flex:1; width:100%; min-height:260px; position:relative; border-radius:var(--radius-md); overflow:hidden; border:1px solid rgba(0,0,0,0.08); background:#ffffff;"></div>
+      </div>
+
+      <!-- Live Debate Stream Drawer (Hướng 1: Đối thoại trực tiếp thời gian thực) -->
+      <div id="debateDrawer" style="display:none; position:absolute; top:55px; right:16px; width:360px; max-width:88%; bottom:65px; background:rgba(255, 255, 255, 0.94); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(0, 0, 0, 0.12); border-radius:var(--radius-lg); box-shadow:0 16px 36px rgba(0,0,0,0.18); z-index:35; flex-direction:column; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.7);">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="status-dot busy" style="width:7px; height:7px;"></span>
+            <span style="font-size:13.5px; font-weight:800; color:var(--text-main);">Luồng Tranh Biện Trực Tiếp</span>
+          </div>
+          <button onclick="toggleDebateDrawer()" style="background:transparent; border:none; cursor:pointer; color:var(--text-secondary); padding:4px;" title="Đóng">
+            <svg class="ui-svg" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div id="debateMessagesList" style="flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:10px; scroll-behavior:smooth;">
+          <div style="text-align:center; padding:24px 10px; color:var(--text-muted); font-size:12px;">
+            Chưa có phát biểu nào. Bấm <b>Khởi Chạy Họp AI</b> để theo dõi tranh luận trực tiếp giữa Phe Mua & Phe Bán.
+          </div>
+        </div>
+        <div style="padding:8px 12px; background:rgba(0,0,0,0.02); border-top:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted);">
+          <span>💡 Click vào tin nhắn để lia camera</span>
+          <span id="debateStatusIndicator">Sẵn sàng</span>
+        </div>
       </div>
 
       <!-- Bottom Agent Dock (Matching Reference Image) -->
@@ -1375,6 +1404,24 @@
             </div>
             <div style="height:5px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
               <div id="gaugeFundBar" style="height:100%; width:52%; background:#8b5cf6; border-radius:3px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consensus Radar Chart (Hướng 3: Biểu đồ Radar đồng thuận 7 chiều) -->
+        <div style="margin-top:14px; padding-top:14px; border-top:1px dashed rgba(0,0,0,0.08); display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+          <div style="flex:0 0 280px; max-width:100%; display:flex; justify-content:center; align-items:center;">
+            <canvas id="consensusRadarCanvas" width="280" height="260" style="width:280px; height:260px;"></canvas>
+          </div>
+          <div style="flex:1; min-width:240px;">
+            <div style="font-size:13px; font-weight:800; color:var(--text-main); margin-bottom:6px;">Phân Tích Đa Trục 7 Phòng Ban (7-Axis Conviction)</div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:10px;">
+              Biểu đồ đo lường mức độ đồng thuận thực tế từ 7 góc nhìn: Kỹ thuật, Tin tức vĩ mô, Tâm lý MXH, BCTC, Luận điểm Phe Mua, Rủi ro Phe Bán, và Thẩm định Rủi ro.
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              <span class="brand-tag" style="background:#e0f2fe; color:#0369a1;">Kỹ thuật: Đọc nến & MACD</span>
+              <span class="brand-tag" style="background:#dcfce7; color:#15803d;">Phe Mua: Động lực bứt phá</span>
+              <span class="brand-tag" style="background:#fee2e2; color:#b91c1c;">Phe Bán: Cản trên & Áp lực chốt</span>
             </div>
           </div>
         </div>
@@ -1707,7 +1754,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Mô hình Sâu (Deep Think)</label>
-          <input type="text" class="std-input" id="model_google_deep" value="gemini-3.8-flash">
+          <input type="text" class="std-input" id="model_google_deep" value="gemini-3.5-flash-lite">
         </div>
         <button class="btn-main btn-sub" onclick="testKey('google')">Kiểm tra kết nối Gemini</button>
       </div>
@@ -1799,10 +1846,71 @@
       </div>
     </div>
 
+    <!-- Hướng 4: Lập Lịch Quét Tự Động (Auto Scheduler & Background Bot) -->
+    <div class="studio-card" style="margin-top:20px; border-left:4px solid #10b981;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+            <span><svg class="ui-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Lập Lịch Quét Thị Trường Tự Động (Auto Scheduler Bot)</span>
+            <span class="brand-tag" style="background:#dcfce7; color:#15803d; border-color:#bbf7d0;">Chạy Ngầm Định Kỳ</span>
+          </div>
+          <div class="card-desc" style="margin-bottom:0;">Tự động triệu tập các Agent họp phân tích theo giờ cố định và tự động bắn kết quả + PDF vào Telegram của bạn</div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:700; background:#f0fdf4; border:1px solid #bbf7d0; padding:6px 14px; border-radius:var(--radius-pill);">
+          <input type="checkbox" id="cfgSchedulerEnabled" style="width:16px; height:16px; accent-color:#2a9d55;" onchange="saveSchedulerToServer()">
+          <span>Bật Lập Lịch Tự Động</span>
+        </label>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div>
+          <label class="form-label">Các khung giờ quét hàng ngày (cách nhau dấu phẩy)</label>
+          <input type="text" class="std-input" id="cfgSchedulerHours" value="08:00, 14:00, 20:00" placeholder="08:00, 14:00, 20:00">
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Ví dụ: 08:00 (Mở phiên Á), 14:00 (Mở phiên Âu), 20:00 (Mở phiên Mỹ)</div>
+        </div>
+        <div>
+          <label class="form-label">Danh sách mã quét ưu tiên</label>
+          <input type="text" class="std-input" id="cfgSchedulerSymbols" value="BTC-USD, XAU" placeholder="BTC-USD, XAU, ETH-USD">
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Các mã tài sản AI sẽ tự động phân tích khi đến giờ</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <button class="btn-main btn-primary" onclick="saveSchedulerToServer()">
+          <svg class="ui-svg" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Lưu Cấu Hình Lập Lịch
+        </button>
+        <span id="schedulerStatusHint" style="font-size:12px; color:var(--text-muted);">Trạng thái: Đang sẵn sàng</span>
+      </div>
+    </div>
+
     <div style="text-align:right; margin-top:20px;">
       <button class="btn-main btn-primary" onclick="saveConfigToServer()" style="padding:12px 32px;">
         Lưu Toàn Bộ Cấu Hình
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Department Modal (Hướng 5: Khám phá chuyên sâu phòng ban) -->
+<div id="deptDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; border-radius:var(--radius-lg); max-width:620px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 24px 50px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1); padding:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="deptModalIcon" style="font-size:22px;">🏢</span>
+        <div>
+          <div id="deptModalTitle" style="font-size:16px; font-weight:800; color:var(--text-main);">Phòng Ban</div>
+          <div id="deptModalSubtitle" style="font-size:11.5px; color:var(--text-secondary);">Báo cáo & Phân tích chuyên sâu</div>
+        </div>
+      </div>
+      <button onclick="closeDeptDetailModal()" style="border:none; background:transparent; cursor:pointer; padding:6px; color:var(--text-secondary); border-radius:50%;" title="Đóng">
+        <svg class="ui-svg" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div id="deptModalContent" style="font-size:13px; color:var(--text-main); line-height:1.6;">
+      Đang tải dữ liệu...
+    </div>
+    <div style="text-align:right; margin-top:18px;">
+      <button class="btn-main btn-primary" onclick="closeDeptDetailModal()">Đóng Cửa Sổ</button>
     </div>
   </div>
 </div>
@@ -2197,6 +2305,7 @@
     fetchLiveFearAndGreed();
     loadMarketScreener('crypto');
     loadPaperTrades();
+    loadSchedulerConfig();
   });
 
   window.addEventListener("load", () => {
@@ -2841,6 +2950,25 @@
         while (obj && obj !== scene) {
           if (obj.userData && obj.userData.deptId) {
             focusDepartment(obj.userData.deptId, true);
+            return;
+          }
+          obj = obj.parent;
+        }
+      }
+    });
+
+    // Double-click to inspect department report details (Hướng 5)
+    canvas.addEventListener("dblclick", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(scene.children, true);
+      if (hits.length > 0) {
+        let obj = hits[0].object;
+        while (obj && obj !== scene) {
+          if (obj.userData && obj.userData.deptId) {
+            openDeptDetailModal(obj.userData.deptId);
             return;
           }
           obj = obj.parent;
@@ -4834,7 +4962,7 @@
       if (models.google_deep && !models.google_deep.includes("2.5")) {
         document.getElementById("model_google_deep").value = models.google_deep;
       } else {
-        document.getElementById("model_google_deep").value = "gemini-3.8-flash";
+        document.getElementById("model_google_deep").value = "gemini-3.5-flash-lite";
       }
       if (models.deepseek_quick) document.getElementById("model_deepseek_quick").value = models.deepseek_quick;
       if (models.deepseek_deep) document.getElementById("model_deepseek_deep").value = models.deepseek_deep;
@@ -4961,7 +5089,7 @@
       api_key,
       analysts,
       quick_model: qm || (provider === "google" ? "gemini-3.5-flash-lite" : undefined),
-      deep_model: dm || (provider === "google" ? "gemini-3.8-flash" : undefined),
+      deep_model: dm || (provider === "google" ? "gemini-3.5-flash-lite" : undefined),
       base_url: userConfig.models?.custom_base_url || document.getElementById("custom_base_url")?.value?.trim()
     };
 
@@ -4996,6 +5124,427 @@
       btn.disabled = false;
       btn.innerText = "Bắt Đầu Phân Tích";
     }
+  }
+
+  // Web Audio API Synthesizer (Chime & Audio Alerts - Hướng 2)
+  let audioCtx = null;
+  function playChime(type) {
+    try {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t = audioCtx.currentTime;
+      if (type === 'step') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, t); // C5
+        osc.frequency.exponentialRampToValueAtTime(783.99, t + 0.12); // G5
+        gain.gain.setValueAtTime(0.04, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.22);
+      } else if (type === 'success') {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t + idx * 0.1);
+          gain.gain.setValueAtTime(0.06, t + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.1 + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(t + idx * 0.1);
+          osc.stop(t + idx * 0.1 + 0.38);
+        });
+      }
+    } catch (e) {}
+  }
+
+  // Live Voice AI Announcer (Phát thanh viên thời gian thực - Hướng 2)
+  let lastSpokenStep = "";
+  let isLiveVoiceMuted = false;
+
+  function speakLiveUpdate(stepName) {
+    if (isLiveVoiceMuted || !('speechSynthesis' in window)) return;
+    if (!stepName) return;
+
+    let phrase = "";
+    const s = stepName.toLowerCase();
+    if (s.includes("kỹ thuật") || s.includes("nến")) phrase = "Phòng Kỹ thuật đang đọc nến và chỉ báo kỹ thuật.";
+    else if (s.includes("tin tức") || s.includes("vĩ mô")) phrase = "Phòng Tin tức đang rà soát dữ liệu vĩ mô và sự kiện Fed.";
+    else if (s.includes("tâm lý") || s.includes("mạng xã hội")) phrase = "Phòng Tâm lý đang đo lường chỉ số tham lam sợ hãi.";
+    else if (s.includes("tài chính") || s.includes("báo cáo tài chính")) phrase = "Phòng Tài chính đang phân tích định giá P/E.";
+    else if (s.includes("phe mua")) phrase = "Phe Mua đang tìm kiếm luận điểm tăng giá.";
+    else if (s.includes("phe bán")) phrase = "Phe Bán đang tìm kiếm luận điểm rủi ro.";
+    else if (s.includes("trưởng phòng")) phrase = "Trưởng phòng Nghiên cứu đang điều phối tranh luận giữa hai phe.";
+    else if (s.includes("trader") || s.includes("giao dịch")) phrase = "Nhân viên Giao dịch đang lập kế hoạch vào lệnh và cắt lỗ.";
+    else if (s.includes("giám đốc")) phrase = "Giám đốc Danh mục đang thẩm định và đưa ra quyết định cuối cùng.";
+
+    if (phrase) {
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(phrase);
+        u.rate = 1.05;
+        const voices = window.speechSynthesis.getVoices();
+        const viVoice = voices.find(v => v.lang.includes("vi") || v.lang.includes("VI"));
+        if (viVoice) u.voice = viVoice;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+  }
+
+  // Live Debate Drawer (Hướng 1: Đối thoại trực tiếp thời gian thực)
+  let isDebateDrawerOpen = false;
+  let lastDebateCount = 0;
+
+  function toggleDebateDrawer() {
+    const drawer = document.getElementById("debateDrawer");
+    if (!drawer) return;
+    isDebateDrawerOpen = !isDebateDrawerOpen;
+    drawer.style.display = isDebateDrawerOpen ? "flex" : "none";
+    const btn = document.getElementById("btnDebateDrawer");
+    if (btn) btn.classList.toggle("active", isDebateDrawerOpen);
+    if (isDebateDrawerOpen) {
+      const list = document.getElementById("debateMessagesList");
+      if (list) list.scrollTop = list.scrollHeight;
+    }
+  }
+
+  function renderDebateMessages(debates) {
+    if (!debates || !debates.length) return;
+    const list = document.getElementById("debateMessagesList");
+    const badge = document.getElementById("debateCountBadge");
+    const indicator = document.getElementById("debateStatusIndicator");
+    if (!list) return;
+
+    if (debates.length !== lastDebateCount) {
+      lastDebateCount = debates.length;
+      if (badge) {
+        badge.innerText = debates.length;
+        badge.style.display = "inline-block";
+      }
+
+      let html = "";
+      debates.forEach((item) => {
+        const isBull = (item.node || "").includes("Bull") || (item.speaker || "").includes("Phe Mua");
+        const isBear = (item.node || "").includes("Bear") || (item.speaker || "").includes("Phe Bán");
+        const isManager = (item.node || "").includes("Manager") || (item.speaker || "").includes("Trưởng phòng") || (item.speaker || "").includes("Giám đốc");
+        const isTrader = (item.node || "").includes("Trader") || (item.speaker || "").includes("Trader");
+
+        let themeColor = isBull ? "#16a34a" : (isBear ? "#dc2626" : (isManager ? "#0284c7" : "#d97706"));
+        let bgGrad = isBull ? "rgba(240, 253, 244, 0.95)" : (isBear ? "rgba(254, 242, 242, 0.95)" : "rgba(248, 250, 252, 0.95)");
+        let borderCol = isBull ? "rgba(34, 197, 94, 0.3)" : (isBear ? "rgba(239, 68, 68, 0.3)" : "rgba(0,0,0,0.08)");
+
+        html += `
+          <div onclick="focusDepartment('${item.dept || 'castle'}', true)" style="cursor:pointer; background:${bgGrad}; border:1px solid ${borderCol}; border-radius:12px; padding:9px 12px; transition:transform 0.15s ease;" onmouseover="this.style.transform='translateX(3px)'" onmouseout="this.style.transform='none'">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:11.5px; font-weight:800; color:${themeColor}; display:flex; align-items:center; gap:5px;">
+                ${isBull ? '🐂' : (isBear ? '🐻' : (isManager ? '⚖️' : '📈'))} ${escapeHtml(item.speaker || item.node)}
+              </span>
+              <span style="font-size:10px; color:var(--text-muted);">${escapeHtml(item.time || '')}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-main); line-height:1.5;">${escapeHtml(item.snippet || item.text || '')}</div>
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+      list.scrollTop = list.scrollHeight;
+      if (indicator) indicator.innerText = `${debates.length} phát biểu`;
+    }
+  }
+
+  // Consensus Radar Chart (Hướng 3: Biểu đồ đồng thuận 7 trục)
+  function drawConsensusRadar(scores, isBullish) {
+    const canvas = document.getElementById("consensusRadarCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h / 2;
+    const radius = Math.min(cx, cy) - 34;
+
+    const labels = [
+      { name: "Kỹ Thuật", val: scores.tech || 68 },
+      { name: "Tin Tức", val: scores.news || 60 },
+      { name: "Tâm Lý", val: scores.social || 55 },
+      { name: "BCTC", val: scores.fund || 50 },
+      { name: "Phe Mua", val: scores.bull || (isBullish ? 80 : 35) },
+      { name: "Phe Bán", val: scores.bear || (isBullish ? 30 : 75) },
+      { name: "Rủi Ro", val: scores.risk || 65 }
+    ];
+
+    const totalAxes = labels.length;
+    const angleStep = (Math.PI * 2) / totalAxes;
+
+    // Concentric rings
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.08)";
+    ctx.lineWidth = 1;
+    for (let level = 1; level <= 4; level++) {
+      const r = (radius / 4) * level;
+      ctx.beginPath();
+      for (let i = 0; i < totalAxes; i++) {
+        const angle = i * angleStep - Math.PI / 2;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    // Spokes
+    for (let i = 0; i < totalAxes; i++) {
+      const angle = i * angleStep - Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + radius * Math.cos(angle), cy + radius * Math.sin(angle));
+      ctx.stroke();
+    }
+
+    // Polygon
+    ctx.beginPath();
+    labels.forEach((item, i) => {
+      const angle = i * angleStep - Math.PI / 2;
+      const r = (radius * (item.val / 100));
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = isBullish ? "rgba(16, 185, 129, 0.28)" : "rgba(239, 68, 68, 0.28)";
+    ctx.fill();
+    ctx.strokeStyle = isBullish ? "#10b981" : "#ef4444";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Vertices & text labels
+    labels.forEach((item, i) => {
+      const angle = i * angleStep - Math.PI / 2;
+      const r = (radius * (item.val / 100));
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = isBullish ? "#059669" : "#dc2626";
+      ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      const labelR = radius + 18;
+      const lx = cx + labelR * Math.cos(angle);
+      const ly = cy + labelR * Math.sin(angle);
+      ctx.font = "bold 10px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillStyle = "#1f2421";
+      ctx.textAlign = (lx < cx - 10) ? "right" : ((lx > cx + 10) ? "left" : "center");
+      ctx.textBaseline = (ly < cy - 10) ? "bottom" : ((ly > cy + 10) ? "top" : "middle");
+      ctx.fillText(`${item.name} ${item.val}%`, lx, ly);
+    });
+  }
+
+  // Auto Scheduler API Client (Hướng 4: Lập lịch quét tự động)
+  async function loadSchedulerConfig() {
+    try {
+      const res = await fetch(`${API_BASE}/api/scheduler`);
+      const cfg = await res.json();
+      const chk = document.getElementById("cfgSchedulerEnabled");
+      const hours = document.getElementById("cfgSchedulerHours");
+      const syms = document.getElementById("cfgSchedulerSymbols");
+      const hint = document.getElementById("schedulerStatusHint");
+      if (chk) chk.checked = !!cfg.enabled;
+      if (hours && cfg.hours) hours.value = Array.isArray(cfg.hours) ? cfg.hours.join(", ") : cfg.hours;
+      if (syms && cfg.symbols) syms.value = Array.isArray(cfg.symbols) ? cfg.symbols.join(", ") : cfg.symbols;
+      if (hint) hint.innerText = cfg.enabled ? `Đang hoạt động (${Array.isArray(cfg.hours) ? cfg.hours.join(', ') : cfg.hours})` : "Đang tắt";
+    } catch (e) {
+      console.warn("Scheduler config fetch error:", e);
+    }
+  }
+
+  async function saveSchedulerToServer() {
+    try {
+      const chk = document.getElementById("cfgSchedulerEnabled");
+      const hoursInput = document.getElementById("cfgSchedulerHours");
+      const symsInput = document.getElementById("cfgSchedulerSymbols");
+      const hint = document.getElementById("schedulerStatusHint");
+
+      const hours = (hoursInput?.value || "08:00, 14:00, 20:00").split(",").map(s => s.trim()).filter(Boolean);
+      const symbols = (symsInput?.value || "BTC-USD, XAU").split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+      const enabled = chk ? chk.checked : false;
+
+      const payload = {
+        enabled: enabled,
+        hours: hours,
+        symbols: symbols,
+        send_telegram: true
+      };
+
+      const res = await fetch(`${API_BASE}/api/scheduler`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast("Đã lưu lịch quét tự động thành công!");
+        if (hint) hint.innerText = enabled ? `Đang hoạt động (${hours.join(', ')})` : "Đang tắt";
+      }
+    } catch (e) {
+      showToast("Lỗi lưu lịch quét: " + e.message);
+    }
+  }
+
+  // Hướng 5: Khám phá chuyên sâu bàn làm việc 3D (Double-click Inspection Modal)
+  function openDeptDetailModal(deptId) {
+    const modal = document.getElementById("deptDetailModal");
+    if (!modal) return;
+    const dept = OFFICE_DEPTS.find(d => d.id === deptId) || { id: deptId, name: deptId, role: "Chuyên viên phân tích" };
+
+    const iconMap = {
+      castle: "👑",
+      tech: "📈",
+      news: "🌐",
+      social: "💬",
+      fundamentals: "📊",
+      bull: "🐂",
+      bear: "🐻",
+      trader: "⚡"
+    };
+
+    const iconEl = document.getElementById("deptModalIcon");
+    const titleEl = document.getElementById("deptModalTitle");
+    const subtitleEl = document.getElementById("deptModalSubtitle");
+    const contentEl = document.getElementById("deptModalContent");
+
+    if (iconEl) iconEl.innerText = iconMap[deptId] || "🏢";
+    if (titleEl) titleEl.innerText = `${dept.name} (${dept.role})`;
+    if (subtitleEl) subtitleEl.innerText = `Chuyên môn: ${dept.label || 'Phân tích định lượng'} · ID: ${dept.id.toUpperCase()}`;
+
+    const r = currentReportData;
+    const sVi = r ? (r.summary_vi || {}) : {};
+
+    let html = '';
+
+    if (deptId === 'tech') {
+      const indicators = sVi.technical_indicators || [];
+      const rows = indicators.length > 0 ? indicators.map(t => `
+        <tr style="border-bottom:1px solid rgba(0,0,0,0.05);">
+          <td style="padding:6px 8px; font-weight:600;">${escapeHtml(t.chi_bao)}</td>
+          <td style="padding:6px 8px; font-family:monospace; color:#2563eb;">${escapeHtml(t.gia_tri)}</td>
+          <td style="padding:6px 8px; color:var(--text-secondary);">${escapeHtml(t.ai_doc_la)}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="3" style="padding:8px; color:var(--text-muted);">Chưa có bảng chỉ báo phiên này.</td></tr>';
+
+      html = `
+        <div style="background:var(--bg-subtle); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#1e293b;">Nhiệm vụ & Chức năng</div>
+          <div>Cào dữ liệu nến 1D/4H/1H từ Yahoo Finance, tính toán MACD, RSI(14), SMA(20/50/200), Bollinger Bands, và xác định các ngưỡng hỗ trợ/kháng cự.</div>
+        </div>
+        <div style="font-weight:700; margin-bottom:6px; color:#1e293b;">Bảng Chỉ Báo Gần Nhất</div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:12px;">
+          <thead>
+            <tr style="background:rgba(0,0,0,0.03); text-align:left;">
+              <th style="padding:6px 8px;">Chỉ báo</th>
+              <th style="padding:6px 8px;">Giá trị</th>
+              <th style="padding:6px 8px;">Đánh giá AI</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="font-size:12px; color:var(--text-secondary);"><strong>Hỗ trợ / Kháng cự:</strong> ${escapeHtml(sVi.support_resistance || 'Chờ phiên phân tích')}</div>
+      `;
+    } else if (deptId === 'news') {
+      html = `
+        <div style="background:var(--bg-subtle); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#1e293b;">Nguồn Dữ Liệu Thu Thập</div>
+          <div>Cào và tổng hợp tin vĩ mô thời gian thực từ Reuters, Bloomberg, CoinDesk, CoinTelegraph, Kitco, và Investing.com.</div>
+        </div>
+        <div style="font-weight:700; margin-bottom:6px; color:#1e293b;">Tóm Tắt Tin Tức Gần Nhất</div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6; margin-bottom:12px;">
+          ${escapeHtml(sVi.news_summary || (r && r.news_report ? r.news_report.slice(0, 400) : '') || 'Chưa có dữ liệu tin tức. Hãy bấm "Khởi Chạy Họp AI" để bắt đầu thu thập.')}
+        </div>
+      `;
+    } else if (deptId === 'social') {
+      html = `
+        <div style="background:var(--bg-subtle); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#1e293b;">Chỉ Số Tâm Lý & Đo Lường Cộng Đồng</div>
+          <div>Theo dõi chỉ số Fear & Greed Crypto (Alternative.me), chỉ số biến động VIX (CBOE), và sắc thái bàn luận trên Reddit / X.</div>
+        </div>
+        <div style="font-weight:700; margin-bottom:6px; color:#1e293b;">Đánh Giá Tâm Lý Thị Trường</div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          ${escapeHtml(sVi.social_summary || (r && r.sentiment_report ? r.sentiment_report.slice(0, 400) : '') || 'Tâm lý thị trường ổn định, hệ thống theo dõi liên tục.')}
+        </div>
+      `;
+    } else if (deptId === 'bull') {
+      html = `
+        <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; color:#059669; margin-bottom:4px;">Luận Điểm Phe Mua (Bull Thesis)</div>
+          <div>Tìm kiếm động lực tăng giá, dòng tiền tích lũy và các xúc tác tích cực từ tin tức & kỹ thuật.</div>
+        </div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          ${escapeHtml(sVi.bull_summary || 'Đang bảo vệ luận điểm tăng giá tại các vùng hỗ trợ then chốt.')}
+        </div>
+      `;
+    } else if (deptId === 'bear') {
+      html = `
+        <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; color:#dc2626; margin-bottom:4px;">Cảnh Báo Phe Bán (Bear Thesis)</div>
+          <div>Đóng vai người phản biện (Devil’s Advocate), tìm kiếm rủi ro điều chỉnh, bẫy giá (Bull trap) và áp lực thanh khoản.</div>
+        </div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          ${escapeHtml(sVi.bear_summary || 'Cảnh báo kháng cự trên và rủi ro biến động mạnh.')}
+        </div>
+      `;
+    } else if (deptId === 'castle') {
+      html = `
+        <div style="background:var(--bg-subtle); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#1e293b;">Ban Giám Đốc Điều Phối & Phán Quyết</div>
+          <div>Lắng nghe tranh biện giữa Phe Mua & Phe Bán, đối chiếu rủi ro và đưa ra phán quyết đồng thuận cao nhất.</div>
+        </div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          ${escapeHtml(sVi.research_manager_verdict || (r && r.investment_debate ? r.investment_debate.slice(0, 450) : '') || 'Chờ hoàn tất buổi họp để công bố phán quyết đồng thuận.')}
+        </div>
+      `;
+    } else if (deptId === 'trader') {
+      html = `
+        <div style="background:var(--bg-subtle); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#1e293b;">Bộ Phận Giao Dịch & Quản Trị Vốn</div>
+          <div>Tính toán điểm vào lệnh (Entry), chốt lời (TP), dừng lỗ (SL), tỷ trọng vốn và quản trị rủi ro R:R.</div>
+        </div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          ${escapeHtml(sVi.trader_action_vi || (r && r.trader_investment_plan ? r.trader_investment_plan.slice(0, 450) : '') || 'Kế hoạch vào lệnh sẽ được xây dựng sau khi Hội đồng thống nhất.')}
+        </div>
+      `;
+    } else {
+      html = `
+        <div style="background:var(--bg-subtle); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#1e293b;">Phân Tích Báo Cáo Tài Chính</div>
+          <div>Định giá P/E, P/B, dòng tiền tự do (FCF), doanh thu tăng trưởng và sức khỏe tài chính.</div>
+        </div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          ${escapeHtml((r && r.fundamental_report ? r.fundamental_report.slice(0, 450) : '') || 'Dữ liệu BCTC được đối soát định kỳ theo quý và năm.')}
+        </div>
+      `;
+    }
+
+    if (contentEl) contentEl.innerHTML = html;
+    modal.style.display = "flex";
+  }
+
+  function closeDeptDetailModal() {
+    const modal = document.getElementById("deptDetailModal");
+    if (modal) modal.style.display = "none";
   }
 
   function startPolling() {
@@ -5063,6 +5612,13 @@
         logBox.innerHTML += `\n> [${new Date().toLocaleTimeString()}] ${st.current_step_vi}`;
         logBox.scrollTop = logBox.scrollHeight;
         playKeyClickSound();
+        playChime('step');
+        speakLiveUpdate(st.current_step_vi);
+      }
+
+      // Render real-time multi-agent live debates (Hướng 1)
+      if (st.live_debates && st.live_debates.length > 0) {
+        renderDebateMessages(st.live_debates);
       }
 
       // Update Debate Arena 3D Hologram Mode
@@ -5337,6 +5893,24 @@
     if (elNews) elNews.innerText = r.news_report || "Không có dữ liệu.";
     const elRisk = document.getElementById("repRiskDebate");
     if (elRisk) elRisk.innerText = r.risk_debate || "Không có dữ liệu.";
+
+    // Hướng 3: Vẽ biểu đồ đồng thuận Consensus Radar 7 trục
+    const isBull = rawRating.includes("BUY") || (sVi.rating_vi || "").toLowerCase().includes("mua") || (sVi.trader_action_vi || "").toLowerCase().includes("mua");
+    const isBear = rawRating.includes("SELL") || (sVi.rating_vi || "").toLowerCase().includes("bán") || (sVi.trader_action_vi || "").toLowerCase().includes("bán");
+    drawConsensusRadar({
+      tech: sVi.conviction_tech || (isBull ? 78 : (isBear ? 35 : 60)),
+      news: sVi.conviction_news || (isBull ? 72 : (isBear ? 40 : 55)),
+      social: sVi.conviction_social || (isBull ? 68 : (isBear ? 38 : 50)),
+      fund: sVi.conviction_fund || 58,
+      bull: isBull ? 85 : 30,
+      bear: isBear ? 82 : 28,
+      risk: 65
+    }, isBull);
+
+    // Hướng 5: Ánh sáng môi trường văn phòng 3D phản ứng theo kết quả (Smart Studio Reactive Lighting)
+    if (typeof applyOfficeMood === 'function') {
+      applyOfficeMood(isBull ? 'bull' : (isBear ? 'bear' : 'sunset'), true);
+    }
   }
 
   function copyReportMarkdown() {
