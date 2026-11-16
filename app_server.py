@@ -138,7 +138,7 @@ def load_user_config() -> dict:
             },
             "models": {
                 "google_quick": "gemini-3.5-flash-lite",
-                "google_deep": "gemini-3.8-flash",
+                "google_deep": "gemini-3.5-flash-lite",
                 "deepseek_quick": "deepseek-chat",
                 "deepseek_deep": "deepseek-reasoner",
                 "openai_quick": "gpt-4o-mini",
@@ -911,10 +911,18 @@ def run_analysis_worker(params: dict):
                 structured_report["has_pdf"] = True
                 structured_report["pdf_path"] = str(pdf_out)
                 structured_report["pdf_file"] = pdf_out.name
-                # Re-save JSON with pdf info
-                json_file.write_text(json.dumps(structured_report, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception as _pdf_err:
             print("PDF generation warning:", _pdf_err)
+
+        # Always attach Vietnamese summary to structured_report
+        summary_vi_file = symbol_dir / f"summary_vi_{symbol}_{trade_date}.json"
+        if summary_vi_file.exists():
+            try:
+                structured_report["summary_vi"] = json.loads(summary_vi_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        # Re-save JSON with pdf and summary_vi info
+        json_file.write_text(json.dumps(structured_report, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
 
         # Automatically send notification & PDF to Telegram if enabled
         try:
@@ -1389,15 +1397,22 @@ class StudioHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self._send_json({"error": "Endpoint not found"}, status=404)
 
     def _send_json(self, data: dict, status: int = 200):
-        body = json.dumps(data, ensure_ascii=False).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            body = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")
+        except Exception as e:
+            body = json.dumps({"error": f"JSON serialization error: {str(e)}"}, ensure_ascii=False).encode("utf-8")
+            status = 500
+        try:
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception:
+            pass
 
 
 def _background_scheduler_loop():
@@ -1418,7 +1433,8 @@ def _background_scheduler_loop():
                         sym = symbols[0] if symbols else "BTC-USD"
                         user_cfg = load_user_config()
                         provider = user_cfg.get("provider", "google")
-                        api_key = (user_cfg.get("api_keys") or {}).get(provider, "")
+                        keys = user_cfg.get("keys") or user_cfg.get("api_keys") or {}
+                        api_key = keys.get(provider, "")
                         params = {
                             "symbol": sym,
                             "date": today_str,
@@ -1432,7 +1448,26 @@ def _background_scheduler_loop():
         time.sleep(30)
 
 
+def disable_windows_quickedit():
+    """Disables QuickEdit mode in Windows command prompt to prevent mouse clicks from freezing the server."""
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        h_stdin = kernel32.GetStdHandle(-10)  # STD_INPUT_HANDLE
+        mode = ctypes.c_ulong()
+        if kernel32.GetConsoleMode(h_stdin, ctypes.byref(mode)):
+            ENABLE_QUICK_EDIT = 0x0040
+            ENABLE_EXTENDED_FLAGS = 0x0080
+            new_mode = (mode.value & ~ENABLE_QUICK_EDIT) | ENABLE_EXTENDED_FLAGS
+            kernel32.SetConsoleMode(h_stdin, new_mode)
+    except Exception:
+        pass
+
+
 def run_server(port=8888):
+    disable_windows_quickedit()
     # Launch background scheduler thread
     threading.Thread(target=_background_scheduler_loop, daemon=True).start()
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), StudioHTTPRequestHandler)

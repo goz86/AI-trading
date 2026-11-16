@@ -1925,6 +1925,7 @@
     : '';
 
   let currentReportData = null;
+  let lastRenderedTaskId = null;
   let pollInterval = null;
   let userConfig = {};
 
@@ -5549,13 +5550,20 @@
   function startPolling() {
     if (pollInterval) clearInterval(pollInterval);
     pollInterval = setInterval(async () => {
+      let st = null;
       try {
         const res = await fetch(`${API_BASE}/api/status`);
-        const st = await res.json();
-        updateUIWithStatus(st);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        st = await res.json();
       } catch (e) {
         document.getElementById("globalStatusDot").className = "status-dot busy";
         document.getElementById("globalStatusText").innerText = "Chưa bật máy chủ .bat";
+        return;
+      }
+      try {
+        updateUIWithStatus(st);
+      } catch (err) {
+        console.error("Lỗi cập nhật giao diện:", err);
       }
     }, 2000);
   }
@@ -5634,11 +5642,14 @@
       if (activeBeaconMesh) activeBeaconMesh.visible = false;
       if (st.result) {
         pBar.style.width = "100%";
-        if (!currentReportData || currentReportData.symbol !== st.result.symbol) {
+        const resKey = `${st.result.symbol}_${st.result.date}_${st.task_id || ''}`;
+        if (!currentReportData || lastRenderedTaskId !== resKey) {
+          lastRenderedTaskId = resKey;
           renderReport(st.result);
           loadHistory();
           spawnSpeechBubble("castle", `Đã có quyết định: ${st.result.rating}!`, true);
           playWallStreetChime();
+          showToast(`Đã hoàn tất phân tích ${st.result.symbol} (${st.result.rating})!`);
         }
         const compBox = document.getElementById("liveCompleteBox");
         if (compBox) {
@@ -5675,6 +5686,17 @@
     document.getElementById("reportContent").style.display = "block";
 
     const sVi = r.summary_vi || {};
+
+    // Auto-fetch Vietnamese summary if missing
+    if ((!r.summary_vi || Object.keys(r.summary_vi).length === 0) && r.symbol && r.date) {
+      fetch(`${API_BASE}/api/report?symbol=${encodeURIComponent(r.symbol)}&date=${encodeURIComponent(r.date)}`)
+        .then(res => res.json())
+        .then(fullReport => {
+          if (fullReport && fullReport.summary_vi && (!currentReportData || currentReportData.symbol === r.symbol)) {
+            renderReport(fullReport);
+          }
+        }).catch(() => {});
+    }
 
     // 1. Verdict & Action
     const badge = document.getElementById("reportRatingBadge");

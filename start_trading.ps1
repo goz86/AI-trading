@@ -65,6 +65,7 @@ try {
 if ($isServerRunning) {
     Write-Safe "      [OK] May chu Localhost da san sang hoat dong!" "Green"
 } else {
+    Get-NetTCPConnection -LocalPort 8888 -ErrorAction SilentlyContinue | Where-Object State -eq 'Listen' | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
     Write-Safe "      Dang bat may chu app_server.py..." "Yellow"
     
     $appServerPath = Join-Path $scriptDir "app_server.py"

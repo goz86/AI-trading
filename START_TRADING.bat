@@ -39,7 +39,8 @@ if !errorlevel! equ 0 set "ALIVE=1"
 if "!ALIVE!"=="1" (
     echo       [OK] May chu Localhost da san sang!
 ) else (
-    echo       Dang bat may chu app_server.py...
+    echo       Dang lam sach cong 8888 va bat may chu app_server.py...
+    powershell -NoProfile -NonInteractive -Command "Get-NetTCPConnection -LocalPort 8888 -ErrorAction SilentlyContinue | Where-Object State -eq 'Listen' | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }" >nul 2>&1
     start "AI Trading Local Server" /min "!PY!" "%~dp0app_server.py" --port 8888
     
     for /L %%A in (1,1,10) do (
