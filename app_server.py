@@ -332,8 +332,15 @@ def scan_history() -> list:
     return history
 
 
+PNL_CACHE = {"timestamp": 0, "data": None}
+
+
 def calculate_pnl_tracker() -> dict:
     """Calculates actual performance and PnL metrics for historical recommendations."""
+    now = time.time()
+    if PNL_CACHE["data"] is not None and (now - PNL_CACHE["timestamp"]) < 120:
+        return PNL_CACHE["data"]
+
     history = scan_history()
     trades = []
     wins = 0
@@ -379,11 +386,19 @@ def calculate_pnl_tracker() -> dict:
             continue
 
         if sym not in live_prices:
-            try:
-                c_data = fetch_candles(sym, period="5d", interval="1d")
-                live_prices[sym] = c_data.get("current_price") or entry_price
-            except Exception:
-                live_prices[sym] = entry_price
+            cached_val = None
+            for ck, cv in CANDLE_CACHE.items():
+                if ck.startswith(f"{sym}_"):
+                    cached_val = cv[1].get("current_price")
+                    break
+            if cached_val:
+                live_prices[sym] = cached_val
+            else:
+                try:
+                    c_data = fetch_candles(sym, period="5d", interval="1d")
+                    live_prices[sym] = c_data.get("current_price") or entry_price
+                except Exception:
+                    live_prices[sym] = entry_price
 
         current_price = live_prices[sym]
         r_upper = rating.upper()
@@ -452,7 +467,7 @@ def calculate_pnl_tracker() -> dict:
     win_rate = round((wins / total_trades * 100), 1) if total_trades > 0 else 0.0
     avg_pnl = round((total_pnl / total_trades), 2) if total_trades > 0 else 0.0
 
-    return {
+    res = {
         "ok": True,
         "total_trades": total_trades,
         "wins": wins,
@@ -462,6 +477,9 @@ def calculate_pnl_tracker() -> dict:
         "trades": trades,
         "insights": get_self_reflection_insights("BTC-USD"),
     }
+    PNL_CACHE["timestamp"] = now
+    PNL_CACHE["data"] = res
+    return res
 
 
 def get_self_reflection_insights(symbol: str) -> list:
