@@ -1,4 +1,5 @@
 {
+  "enabled": true,
   "hours": [
     "08:00",
     "14:00",
@@ -9,5 +10,5 @@
     "XAU"
   ],
   "send_telegram": true,
-  "enabled": true
+  "last_run": "2026-11-16_14:00"
 }

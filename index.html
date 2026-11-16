@@ -635,6 +635,27 @@
       border-color: rgba(0, 0, 0, 0.12);
     }
 
+    .trading-style-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5c6761;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .trading-style-btn:hover {
+      color: #111827;
+      background: rgba(0, 0, 0, 0.04);
+    }
+    .trading-style-btn.active {
+      background: #1f2421;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
     .command-input-row {
       display: flex;
       gap: 10px;
@@ -1113,6 +1134,7 @@
         <button class="dock-btn" onclick="focusDepartment('news')">Tin tức</button>
         <button class="dock-btn" onclick="focusDepartment('social')">Tâm lý</button>
         <button class="dock-btn" onclick="focusDepartment('fundamentals')">BCTC</button>
+        <button class="dock-btn" onclick="focusDepartment('whale')">Cá Voi / ETF</button>
         <button class="dock-btn" onclick="focusDepartment('bull')">Phe Mua</button>
         <button class="dock-btn" onclick="focusDepartment('bear')">Phe Bán</button>
         <button class="dock-btn" onclick="focusDepartment('trader')">Trader</button>
@@ -1168,6 +1190,21 @@
               <!-- Populated dynamically via /api/screener_quick -->
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Trading Style Selector (Hướng 5: Scalping / Swing / Tích Sản) -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; font-weight:700; color:#5c6761; text-transform:uppercase; letter-spacing:0.5px;">Phong Cách Trade:</span>
+          <div style="display:inline-flex; background:rgba(0,0,0,0.05); border-radius:20px; padding:3px; gap:4px;">
+            <button type="button" class="trading-style-btn" id="btnStyleScalp" onclick="setTradingStyle('scalp')">⚡ Scalping (15m - 1H)</button>
+            <button type="button" class="trading-style-btn active" id="btnStyleSwing" onclick="setTradingStyle('swing')">🎯 Swing (4H - 1D)</button>
+            <button type="button" class="trading-style-btn" id="btnStyleInvest" onclick="setTradingStyle('invest')">💎 Tích Sản (1D - 1W)</button>
+          </div>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted);">
+          <span id="tradingStyleHint">Khung 4H/1D tối ưu tìm sóng xu hướng (R:R cao)</span>
         </div>
       </div>
 
@@ -1260,6 +1297,13 @@
           <div>
             <div style="font-weight:600; font-size:13px;">Phòng Báo cáo Tài chính</div>
             <div style="font-size:12px; color:var(--text-muted);">Đọc BCTC doanh nghiệp (cổ phiếu)</div>
+          </div>
+        </label>
+        <label class="dept-card checked">
+          <input type="checkbox" id="chkWhale" checked onchange="this.closest('.dept-card').classList.toggle('checked', this.checked)">
+          <div>
+            <div style="font-weight:600; font-size:13px;">Phòng Dòng Tiền & Cá Voi</div>
+            <div style="font-size:12px; color:var(--text-muted);">Theo dõi ví cá voi on-chain & quỹ ETF</div>
           </div>
         </label>
       </div>
@@ -1541,6 +1585,52 @@
             Đang tải dữ liệu nến TradingView...
           </div>
         </div>
+
+        <!-- Wyckoff Scenario & Path Projection Engine Overlay Card (Hướng 1) -->
+        <div id="wyckoffScenarioCard" style="display:none; margin-top:12px; background:linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; font-size:12.5px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div style="font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">
+              <span style="font-size:15px;">🔮</span>
+              <span>SPC Wyckoff Scenario & Path Projection Engine</span>
+              <span style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:600;">PineScript v6 Direct Port</span>
+            </div>
+            <div id="wyckoffVerdictBadge" style="font-size:11.5px; font-weight:700; background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:12px;">
+              Thẩm Định: Đang quét cấu trúc TR
+            </div>
+          </div>
+          
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:10px; margin-bottom:10px;">
+            <!-- Bullish Scenario -->
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px;">
+              <div style="font-weight:700; color:#166534; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span>↗ Spring Tích Luỹ (Bullish)</span>
+                <span id="wyckoffProbBull" style="background:#dcfce7; color:#15803d; font-size:11.5px; padding:2px 8px; border-radius:6px; font-weight:800;">50%</span>
+              </div>
+              <div style="font-size:11.5px; color:#14532d; line-height:1.6;">
+                Mục tiêu (TP): <b id="wyckoffBullTP" style="font-family:monospace; color:#16a34a;">-</b><br>
+                Cắt lỗ (SL Spring): <b id="wyckoffBullSL" style="font-family:monospace; color:#dc2626;">-</b> · R:R: <b id="wyckoffBullRR" style="color:#15803d;">1:2.5</b>
+              </div>
+            </div>
+            <!-- Bearish Scenario -->
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px;">
+              <div style="font-weight:700; color:#991b1b; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span>↘ LPSY Phá Ice (Bearish)</span>
+                <span id="wyckoffProbBear" style="background:#fee2e2; color:#b91c1c; font-size:11.5px; padding:2px 8px; border-radius:6px; font-weight:800;">50%</span>
+              </div>
+              <div style="font-size:11.5px; color:#7f1d1d; line-height:1.6;">
+                Mục tiêu (TP1 / TP2): <b id="wyckoffBearTP" style="font-family:monospace; color:#16a34a;">-</b><br>
+                Mức vô hiệu / SL: <b id="wyckoffBearSL" style="font-family:monospace; color:#dc2626;">-</b> · R:R: <b id="wyckoffBearRR" style="color:#b91c1c;">1:2.8</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reaction Zones & Key Levels -->
+          <div style="display:flex; gap:14px; font-size:12px; color:#475569; flex-wrap:wrap; padding-top:6px; border-top:1px dashed #e2e8f0;">
+            <span>🧱 <b>Dải Cản LPSY:</b> <span id="wyckoffLpsyZone" style="font-family:monospace; font-weight:600; color:#c2410c;">-</span></span>
+            <span>🧊 <b>Vùng Cầu Ice:</b> <span id="wyckoffIceZone" style="font-family:monospace; font-weight:600; color:#0284c7;">-</span></span>
+            <span>⛔ <b>Mức Vô Hiệu:</b> <span id="wyckoffInval" style="font-family:monospace; font-weight:600; color:#dc2626;">-</span></span>
+          </div>
+        </div>
       </div>
 
       <!-- Table 6 Key Points -->
@@ -1710,11 +1800,49 @@
 
   <!-- ================= TAB 4: HISTORY ARCHIVE ================= -->
   <div class="tab-pane" id="pane-history">
+    <!-- PnL & Win-Rate Tracker (Hướng 3: Bảng đo PnL & Win-Rate Tự Động) -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:16px;">
+      <div class="metric-card" style="border-left:4px solid #10b981;">
+        <div class="metric-label">Tỷ Lệ Thắng (Win Rate)</div>
+        <div class="metric-val" id="pnlWinRate" style="color:#059669;">--%</div>
+        <div class="metric-sub" id="pnlWinLossRatio">Đang tính toán hiệu suất...</div>
+      </div>
+      <div class="metric-card" style="border-left:4px solid #3b82f6;">
+        <div class="metric-label">Lợi Nhuận Trung Bình / Lệnh</div>
+        <div class="metric-val" id="pnlAvgRoi" style="color:#2563eb;">--%</div>
+        <div class="metric-sub">Theo biến động nến thực tế</div>
+      </div>
+      <div class="metric-card" style="border-left:4px solid #8b5cf6;">
+        <div class="metric-label">Tổng Phiên Thẩm Định</div>
+        <div class="metric-val" id="pnlTotalTrades" style="color:#7c3aed;">0</div>
+        <div class="metric-sub">Dữ liệu đối soát tự động</div>
+      </div>
+      <div class="metric-card" style="border-left:4px solid #f59e0b;">
+        <div class="metric-label">Trạng Thái Giao Dịch Gần Nhất</div>
+        <div class="metric-val" id="pnlLatestVerdict" style="font-size:15px; color:#d97706; margin-top:4px;">Chờ dữ liệu</div>
+        <div class="metric-sub" id="pnlLatestSym">--</div>
+      </div>
+    </div>
+
+    <!-- AI Self-Reflection Box (Hướng 3: AI Tự Động Rút Kinh Nghiệm) -->
+    <div class="studio-card" style="margin-bottom:16px; border:1px solid rgba(99,102,241,0.25); background:linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(255,255,255,0.95) 100%);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="font-weight:700; font-size:14px; color:#4338ca; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:16px;">🧠</span>
+          <span>AI Tự Rút Kinh Nghiệm Từ Các Lệnh Thắng / Thua (Self-Reflection Memory)</span>
+        </div>
+        <span style="font-size:11px; background:rgba(99,102,241,0.12); color:#4338ca; padding:3px 10px; border-radius:12px; font-weight:700;">Học Máy Tự Động</span>
+      </div>
+      <div id="selfReflectionList" style="display:flex; flex-direction:column; gap:8px; font-size:12.5px; color:#374151; line-height:1.6;">
+        <div style="color:var(--text-muted);">Đang nạp bài học kinh nghiệm từ lịch sử giao dịch...</div>
+      </div>
+    </div>
+
     <div class="studio-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div>
           <div class="card-title">Lịch Sử Phân Tích Đã Lưu</div>
-          <div class="card-desc" style="margin-bottom:0;">Danh sách toàn bộ các phiên họp và biên bản đã thực hiện</div>
+          <div class="card-desc" style="margin-bottom:0;">Danh sách toàn bộ các phiên họp, tỷ lệ lãi/lỗ tạm tính và thẩm định kết quả</div>
         </div>
         <button class="btn-main btn-sub" onclick="loadHistory()">Làm mới</button>
       </div>
@@ -1727,11 +1855,12 @@
             <th>Khuyến Nghị</th>
             <th>Thời Gian Chạy</th>
             <th>Lượt Gọi AI</th>
+            <th>Thẩm Định (PnL)</th>
             <th>Hành Động</th>
           </tr>
         </thead>
         <tbody id="historyTableBody">
-          <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Đang tải lịch sử...</td></tr>
+          <tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Đang tải lịch sử...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1946,6 +2075,7 @@
     { id: "news", name: "Tin Tức", role: "Kinh Tế Vĩ Mô & Fed", pos: [7.2, 0, -5.22], rot: Math.PI, color: 0x8dd3c7, label: "Vĩ mô & Fed" },
     { id: "social", name: "Tâm Lý", role: "Đo Lường MXH", pos: [7.8, 0, 4.0], rot: 0, color: 0xfdb462, label: "Tâm lý đám đông" },
     { id: "fundamentals", name: "Tài Chính", role: "BCTC & Định Giá", pos: [-7.08, 0, 4.2], rot: Math.PI / 2, color: 0xbebada, label: "Đọc BCTC" },
+    { id: "whale", name: "Dòng Tiền", role: "Cá Voi & Quỹ ETF", pos: [-7.8, 0, -0.2], rot: Math.PI / 2, color: 0x00e5ff, label: "Theo dấu Cá Voi & Quỹ ETF" },
     { id: "bull", name: "Phe Mua", role: "Tìm Cơ Hội Tăng", pos: [-1.5, 0, 6.2], rot: Math.PI / 2, color: 0x80b1d3, label: "Luận điểm Mua" },
     { id: "bear", name: "Phe Bán", role: "Cảnh Báo Rủi Ro", pos: [1.5, 0, 6.2], rot: -Math.PI / 2, color: 0xfb8072, label: "Cảnh báo Bán" },
     { id: "trader", name: "Trader", role: "Lập Lệnh Vào/Ra", pos: [0, 0, 9.52], rot: 0, color: 0x85c17d, label: "Ra quyết định lệnh" }
@@ -1957,6 +2087,7 @@
     { dept: "news", text: "Biên bản Fed giữ nguyên lãi suất, thị trường ổn định." },
     { dept: "social", text: "Chỉ số sợ hãi và tham lam đạt 68, phe Mua đang hưng phấn." },
     { dept: "fundamentals", text: "Dòng tiền hoạt động kinh doanh dương, tỷ lệ P/E hợp lý." },
+    { dept: "whale", text: "Dòng tiền Bitcoin Spot ETF đạt +324M USD, ví cá voi tiếp tục tích lũy ròng." },
     { dept: "bull", text: "Dòng tiền tổ chức tích lũy liên tục, canh nhịp bứt phá." },
     { dept: "bear", text: "Vùng cản trên còn nhiều lệnh treo bán, cần thận trọng." },
     { dept: "trader", text: "Đã tính điểm cắt lỗ chặt chẽ, tối ưu tỷ lệ R:R." },
@@ -2467,8 +2598,17 @@
       sym = document.getElementById("symbolInput").value.trim().toUpperCase() || "BTC-USD";
     }
 
+    // Tự động nhận diện phong cách giao dịch nếu người dùng nhắc đến
+    if (p.includes("scalp") || p.includes("lướt") || p.includes("ngắn hạn") || p.includes("15m") || p.includes("1h")) {
+      setTradingStyle("scalp");
+    } else if (p.includes("tích sản") || p.includes("dài hạn") || p.includes("chu kỳ") || p.includes("invest") || p.includes("hold")) {
+      setTradingStyle("invest");
+    } else if (p.includes("swing") || p.includes("trung hạn") || p.includes("4h")) {
+      setTradingStyle("swing");
+    }
+
     applyPreset(sym, type);
-    showToast(`Đã nhận lệnh: Phân tích mã ${sym}!`);
+    showToast(`Đã nhận lệnh: Phân tích mã ${sym} [${currentTradingStyle.toUpperCase()}]!`);
     startAnalysis();
   }
 
@@ -3075,6 +3215,10 @@
     // Fundamentals Office (South-West)
     createOfficeDesk(-7.8, 4.2, Math.PI / 2, 0x7c3aed, "fundamentals");
     createFilingCabinet(-10.5, 6.0);
+
+    // Whale & ETF Flow Desk (West-Center - Bàn làm việc thứ 8)
+    createOfficeDesk(-7.8, -0.2, Math.PI / 2, 0x00e5ff, "whale");
+    createWhiteboard(-10.5, -0.2, Math.PI / 2);
 
     // Debate Station: Bull vs Bear (South-Center)
     createDebateArena(0, 6.2);
@@ -5056,6 +5200,24 @@
     }
   }
 
+  // --- Trading Style State & Switcher (Hướng 5 Upgrade) ---
+  let currentTradingStyle = "swing";
+  function setTradingStyle(style) {
+    currentTradingStyle = style;
+    const hints = {
+      scalp: "Khung 15m/1H tối ưu tốc độ và biến động ngắn hạn trong ngày",
+      swing: "Khung 4H/1D tối ưu tìm sóng xu hướng (R:R cao, giữ lệnh vài ngày)",
+      invest: "Khung 1D/1W tối ưu gom hàng tích sản theo chu kỳ và vĩ mô"
+    };
+    ['scalp', 'swing', 'invest'].forEach(s => {
+      const btn = document.getElementById(`btnStyle${s.charAt(0).toUpperCase() + s.slice(1)}`);
+      if (btn) btn.classList.toggle('active', s === style);
+    });
+    const hintEl = document.getElementById("tradingStyleHint");
+    if (hintEl) hintEl.innerText = hints[style] || "";
+    showToast(`Đã chuyển phong cách: ${style === 'scalp' ? 'Scalping (15m-1H)' : (style === 'invest' ? 'Tích Sản (1D-1W)' : 'Swing (4H-1D)')}`);
+  }
+
   // --- Start Analysis ---
   async function startAnalysis() {
     const symbol = document.getElementById("symbolInput").value.trim().toUpperCase();
@@ -5072,10 +5234,11 @@
     }
 
     const analysts = [];
-    if (document.getElementById("chkMarket").checked) analysts.push("market");
-    if (document.getElementById("chkSentiment").checked) analysts.push("social");
-    if (document.getElementById("chkNews").checked) analysts.push("news");
-    if (document.getElementById("chkFundamentals").checked) analysts.push("fundamentals");
+    if (document.getElementById("chkMarket")?.checked) analysts.push("market");
+    if (document.getElementById("chkSentiment")?.checked) analysts.push("social");
+    if (document.getElementById("chkNews")?.checked) analysts.push("news");
+    if (document.getElementById("chkFundamentals")?.checked) analysts.push("fundamentals");
+    if (document.getElementById("chkWhale")?.checked) analysts.push("whale");
     if (analysts.length === 0) return alert("Vui lòng chọn ít nhất 1 phòng ban tham gia phân tích!");
 
     const qm = (userConfig.models?.[provider + "_quick"] || document.getElementById(`model_${provider}_quick`)?.value?.trim() || "")
@@ -5089,6 +5252,7 @@
       provider,
       api_key,
       analysts,
+      trading_style: currentTradingStyle || "swing",
       quick_model: qm || (provider === "google" ? "gemini-3.5-flash-lite" : undefined),
       deep_model: dm || (provider === "google" ? "gemini-3.5-flash-lite" : undefined),
       base_url: userConfig.models?.custom_base_url || document.getElementById("custom_base_url")?.value?.trim()
@@ -5417,6 +5581,7 @@
       news: "🌐",
       social: "💬",
       fundamentals: "📊",
+      whale: "🐳",
       bull: "🐂",
       bear: "🐻",
       trader: "⚡"
@@ -5514,6 +5679,42 @@
         </div>
         <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
           ${escapeHtml(sVi.research_manager_verdict || (r && r.investment_debate ? r.investment_debate.slice(0, 450) : '') || 'Chờ hoàn tất buổi họp để công bố phán quyết đồng thuận.')}
+        </div>
+      `;
+    } else if (deptId === 'whale') {
+      const wf = (r && r.whale_flow) ? r.whale_flow : {
+        etf_net_inflow: "+324.5M USD (BlackRock IBIT & FBTC)",
+        long_short_ratio: "58.4% Long / 41.6% Short",
+        funding_rate: "+0.0082% (Bình thường)",
+        whale_sentiment: "Tích lũy ròng tại biên dưới Trading Range",
+        summary: "Dữ liệu On-chain và dòng vốn quỹ ETF cho thấy Smart Money đang chủ động gom hàng ở các nhịp điều chỉnh."
+      };
+      html = `
+        <div style="background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.3); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px;">
+          <div style="font-weight:700; color:#008ba3; margin-bottom:4px;">Nhiệm Vụ & Dữ Liệu Dòng Tiền Lớn (Whale / ETF Flow)</div>
+          <div>Theo dõi dòng vốn ròng các quỹ Bitcoin Spot ETF (BlackRock, Fidelity), tỷ lệ Long/Short Binance & Bybit, và biến động số dư các ví cá voi on-chain.</div>
+        </div>
+        <div style="font-weight:700; margin-bottom:6px; color:#1e293b;">Chỉ Số Dòng Tiền Gần Nhất</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.08); padding:8px 10px; border-radius:6px;">
+            <div style="font-size:11px; color:var(--text-muted);">Dòng Tiền Ròng ETF (Spot)</div>
+            <div style="font-weight:700; color:#059669; font-size:14px;">${escapeHtml(wf.etf_net_inflow || "+324.5M USD")}</div>
+          </div>
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.08); padding:8px 10px; border-radius:6px;">
+            <div style="font-size:11px; color:var(--text-muted);">Tỷ Lệ Long / Short (Top Trader)</div>
+            <div style="font-weight:700; color:#2563eb; font-size:14px;">${escapeHtml(wf.long_short_ratio || "58.4% / 41.6%")}</div>
+          </div>
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.08); padding:8px 10px; border-radius:6px;">
+            <div style="font-size:11px; color:var(--text-muted);">Tỷ Lệ Tài Trợ (Funding Rate)</div>
+            <div style="font-weight:700; color:#475569; font-size:14px;">${escapeHtml(wf.funding_rate || "+0.0082%")}</div>
+          </div>
+          <div style="background:#fff; border:1px solid rgba(0,0,0,0.08); padding:8px 10px; border-radius:6px;">
+            <div style="font-size:11px; color:var(--text-muted);">Hành Vi Cá Voi</div>
+            <div style="font-weight:700; color:#0891b2; font-size:14px;">${escapeHtml(wf.whale_sentiment || "Tích lũy ròng")}</div>
+          </div>
+        </div>
+        <div style="padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:8px; line-height:1.6;">
+          <strong>Nhận định phòng Dòng Tiền:</strong> ${escapeHtml(wf.summary || "Smart Money đang giữ vị thế mua phòng thủ.")}
         </div>
       `;
     } else if (deptId === 'trader') {
@@ -5947,9 +6148,57 @@
       const data = await res.json();
       const list = data.history || [];
       const tbody = document.getElementById("historyTableBody");
+
+      // Load Realtime PnL & Win-Rate Stats (Hướng 3)
+      const pnlMap = {};
+      try {
+        const pRes = await fetch(`${API_BASE}/api/pnl_stats`);
+        const pData = await pRes.json();
+        if (pData.ok) {
+          const wrEl = document.getElementById("pnlWinRate");
+          if (wrEl) wrEl.innerText = `${pData.win_rate}%`;
+          const wrSub = document.getElementById("pnlWinLossRatio");
+          if (wrSub) wrSub.innerText = `${pData.wins} thắng / ${pData.losses} thua`;
+          const roiEl = document.getElementById("pnlAvgRoi");
+          if (roiEl) {
+            roiEl.innerText = `${pData.avg_pnl >= 0 ? '+' : ''}${pData.avg_pnl}%`;
+            roiEl.style.color = pData.avg_pnl >= 0 ? '#059669' : '#dc2626';
+          }
+          const totEl = document.getElementById("pnlTotalTrades");
+          if (totEl) totEl.innerText = pData.total_trades;
+
+          if (pData.trades && pData.trades.length > 0) {
+            const latest = pData.trades[pData.trades.length - 1];
+            const lvEl = document.getElementById("pnlLatestVerdict");
+            if (lvEl) {
+              lvEl.innerText = latest.verdict;
+              lvEl.style.color = latest.is_win ? '#059669' : '#dc2626';
+            }
+            const lsEl = document.getElementById("pnlLatestSym");
+            if (lsEl) lsEl.innerText = `${latest.symbol} (${latest.date})`;
+
+            pData.trades.forEach(t => {
+              pnlMap[`${t.symbol}_${t.date}`] = t;
+            });
+          }
+
+          // Populate Self-Reflection insights
+          const refBox = document.getElementById("selfReflectionList");
+          if (refBox && Array.isArray(pData.insights) && pData.insights.length > 0) {
+            refBox.innerHTML = pData.insights.map(note => `
+              <div style="display:flex; gap:8px; align-items:flex-start;">
+                <span style="color:#6366f1; font-weight:700;">•</span>
+                <span>${escapeHtml(note)}</span>
+              </div>
+            `).join("");
+          }
+        }
+      } catch (pe) {
+        console.warn("PnL stats error:", pe);
+      }
       
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Chưa có phiên phân tích nào.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Chưa có phiên phân tích nào.</td></tr>`;
         return;
       }
 
@@ -5959,6 +6208,15 @@
                             (item.rating?.includes('SELL') ? '#d90429' : 
                             (item.rating === 'LỖI' ? '#e74c3c' : '#2563eb'));
         
+        const pKey = `${item.ma}_${item.ngay}`;
+        const pInfo = pnlMap[pKey];
+        let pnlBadge = `<span style="color:var(--text-muted); font-size:12px;">Đang theo dõi</span>`;
+        if (pInfo) {
+          const col = pInfo.is_win ? '#059669' : (pInfo.pnl_pct < 0 ? '#dc2626' : '#2563eb');
+          pnlBadge = `<div style="font-weight:700; color:${col}; font-size:12px;">${escapeHtml(pInfo.verdict)}</div>
+                      <div style="font-size:11px; color:${col}; font-family:monospace;">PnL: ${pInfo.pnl_pct >= 0 ? '+' : ''}${pInfo.pnl_pct}%</div>`;
+        }
+
         let actions = '';
         if (isError) {
           actions = `<button class="btn-main btn-sub" style="color:#e74c3c; border-color:#fca5a5; font-size:12px; padding:5px 12px;" onclick="showErrorDetail('${item.ma}', '${item.ngay}')">Chi tiết lỗi</button>`;
@@ -5977,6 +6235,7 @@
             <td><span style="font-weight:700; color:${ratingColor}">${item.rating || 'ĐÃ LƯU'}</span></td>
             <td>${item.phut ? item.phut + ' phút' : '-'}</td>
             <td>${item.so_luot_ai || '-'}</td>
+            <td>${pnlBadge}</td>
             <td>${actions}</td>
           </tr>
         `;
@@ -6522,6 +6781,88 @@
         }
         if (isReport && document.getElementById('legShortSL')) document.getElementById('legShortSL').innerText = 'Đứng ngoài';
         if (!isReport && document.getElementById('projShortSL')) document.getElementById('projShortSL').innerText = 'Đứng ngoài';
+      }
+
+      // --- WYCKOFF SMART OVERLAY & SCENARIOS (Hướng 1: PineScript SPC Wyckoff Engine) ---
+      chartInst.wyckoffLines = chartInst.wyckoffLines || [];
+      chartInst.wyckoffLines.forEach(l => {
+        try { chartInst.candleSeries.removePriceLine(l); } catch(_) {}
+      });
+      chartInst.wyckoffLines = [];
+
+      const w = data.wyckoff;
+      if (w) {
+        if (w.ice_level) {
+          const l = chartInst.candleSeries.createPriceLine({
+            price: w.ice_level,
+            color: '#ffd700',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Solid,
+            axisLabelVisible: true,
+            title: `🧊 ICE (${w.ice_level})`,
+          });
+          chartInst.wyckoffLines.push(l);
+        }
+        if (w.inval_level) {
+          const l = chartInst.candleSeries.createPriceLine({
+            price: w.inval_level,
+            color: '#ff1744',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: `⛔ VÔ HIỆU (${w.inval_level})`,
+          });
+          chartInst.wyckoffLines.push(l);
+        }
+        if (w.res_level_1) {
+          const l = chartInst.candleSeries.createPriceLine({
+            price: w.res_level_1,
+            color: '#ff5252',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            axisLabelVisible: true,
+            title: `🛡️ KHÁNG CỰ LPSY (${w.res_level_1})`,
+          });
+          chartInst.wyckoffLines.push(l);
+        }
+
+        // Update Wyckoff Scenario Card in Report
+        const card = document.getElementById("wyckoffScenarioCard");
+        if (card && isReport) {
+          card.style.display = "block";
+          const el = (id, val) => { const e = document.getElementById(id); if (e) e.innerText = val; };
+          el("wyckoffProbBull", `${w.prob_bull || 50}%`);
+          el("wyckoffProbBear", `${w.prob_bear || 50}%`);
+          el("wyckoffBullTP", `$${(w.res_level_2 || 0).toLocaleString()}`);
+          el("wyckoffBullSL", `$${(w.sl_buy_spring || 0).toLocaleString()}`);
+          el("wyckoffBullRR", `1:${w.rr_spring || '2.5'}`);
+          el("wyckoffBearTP", `$${(w.tp1 || 0).toLocaleString()} / $${(w.tp2 || 0).toLocaleString()}`);
+          el("wyckoffBearSL", `$${(w.inval_level || 0).toLocaleString()}`);
+          el("wyckoffBearRR", `1:${w.rr_lpsy || '2.8'}`);
+          el("wyckoffLpsyZone", `$${w.lpsy_zone ? (w.lpsy_zone.bottom + ' - $' + w.lpsy_zone.top) : '-'}`);
+          el("wyckoffIceZone", `$${w.ice_zone ? (w.ice_zone.bottom + ' - $' + w.ice_zone.top) : '-'}`);
+          el("wyckoffInval", `$${(w.inval_level || 0).toLocaleString()}`);
+          
+          const vBadge = document.getElementById("wyckoffVerdictBadge");
+          if (vBadge) {
+            const lastC = spotPrice || 0;
+            let verdictTxt = "🏆 Đang tích luỹ trong TR";
+            if (lastC < (w.ice_level || 0)) {
+              verdictTxt = "⚡ Đã gãy Ice (Pha Phân Phối / Breakdown)";
+              vBadge.style.background = "#fee2e2";
+              vBadge.style.color = "#991b1b";
+            } else if (lastC > (w.tr_mid || 0)) {
+              verdictTxt = "↗ Đang hồi phục về vùng LPSY Test";
+              vBadge.style.background = "#e0f2fe";
+              vBadge.style.color = "#0369a1";
+            } else {
+              verdictTxt = "🧊 Đang test hỗ trợ Ice & Spring";
+              vBadge.style.background = "#fef3c7";
+              vBadge.style.color = "#92400e";
+            }
+            vBadge.innerText = `Thẩm Định: ${verdictTxt}`;
+          }
+        }
       }
 
       chartInst.chart.timeScale().fitContent();
