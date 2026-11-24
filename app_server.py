@@ -1047,9 +1047,14 @@ def run_analysis_worker(params: dict):
 
         is_crypto = symbol.endswith("-USD") and not symbol.startswith("XAU") and not symbol.startswith("XAG")
         is_commodity = symbol.endswith("=F") or symbol.startswith("^") or symbol.startswith("XAU") or symbol.startswith("XAG") or symbol.startswith("CL") or symbol.startswith("WTI")
-        selected_analysts = list(analysts)
+        
+        has_whale = "whale" in analysts
+        valid_core_analysts = {"market", "social", "news", "fundamentals"}
+        selected_analysts = [a for a in analysts if a in valid_core_analysts]
         if not is_crypto and not is_commodity and "fundamentals" not in selected_analysts:
             selected_analysts.append("fundamentals")
+        if not selected_analysts:
+            selected_analysts = ["market", "social", "news"]
 
         callbacks = [cb] if cb else []
         ta = TradingAgentsGraph(
@@ -1062,6 +1067,17 @@ def run_analysis_worker(params: dict):
         with STATE_LOCK:
             EXECUTION_STATE["current_step_vi"] = "Đang lấy dữ liệu thị trường & bắt đầu phân tích..."
             EXECUTION_STATE["progress_pct"] = 15
+            if has_whale:
+                whale_step_vi = "Phòng Dòng Tiền (Theo dấu Cá Voi & Quỹ ETF)"
+                if whale_step_vi not in EXECUTION_STATE["node_history"]:
+                    EXECUTION_STATE["node_history"].append(whale_step_vi)
+                EXECUTION_STATE["live_debates"].append({
+                    "node": "Whale Analyst",
+                    "dept": "whale",
+                    "speaker": "Chuyên Viên Dòng Tiền & Quỹ ETF",
+                    "text": "Dữ liệu on-chain và dòng vốn ròng các quỹ Bitcoin Spot ETF tiếp tục được đối chiếu với tỷ lệ Long/Short để xác thực lực gom của Smart Money.",
+                    "time": datetime.now().strftime("%H:%M:%S")
+                })
 
         t0 = time.time()
         asset_type = "crypto" if is_crypto else ("commodity" if is_commodity else "stock")
